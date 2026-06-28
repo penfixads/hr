@@ -18,10 +18,10 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-10 w-full">
             <Link
               href="/creative"
-              className="group flex flex-col items-center gap-3 px-10 py-8 rounded-2xl shadow-lg text-white font-semibold text-lg transition-all hover:scale-105 hover:shadow-xl"
+              className="group flex flex-col items-center gap-3 px-10 py-8 rounded-2xl shadow-lg text-white font-semibold text-lg transition-all hover:scale-105 hover:shadow-xl flex-1"
               style={{ backgroundColor: '#4A0000' }}
             >
               <span className="text-4xl">🎨</span>
@@ -31,7 +31,7 @@ export default function Home() {
 
             <Link
               href="/production"
-              className="group flex flex-col items-center gap-3 px-10 py-8 rounded-2xl shadow-lg font-semibold text-lg transition-all hover:scale-105 hover:shadow-xl border-2"
+              className="group flex flex-col items-center gap-3 px-10 py-8 rounded-2xl shadow-lg font-semibold text-lg transition-all hover:scale-105 hover:shadow-xl border-2 flex-1"
               style={{ backgroundColor: '#C9A84C', borderColor: '#4A0000', color: '#4A0000' }}
             >
               <span className="text-4xl">🔧</span>
