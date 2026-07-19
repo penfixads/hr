@@ -67,3 +67,33 @@ $$ language plpgsql;
 create trigger employees_updated_at
   before update on employees
   for each row execute function update_updated_at();
+
+-- Quarterly Evaluations — Penfix's "15-Point Quarterly Evaluation" self-rated by the
+-- employee each quarter (see lib/fifteenPoint.ts for the actual criteria, transcribed from
+-- the manual Evaluation 2026.xlsx sheets). One row per employee per quarter, so history
+-- accumulates instead of a single evaluation getting overwritten each time.
+create table if not exists quarterly_evaluations (
+  id uuid primary key default gen_random_uuid(),
+  employee_id uuid not null references employees(id) on delete cascade,
+  employee_name text not null,
+  team text not null check (team in ('creative', 'production')),
+  quarter text not null check (quarter in ('Q1', 'Q2', 'Q3', 'Q4')),
+  year integer not null,
+
+  -- Ratings (JSON: { "qualification text": 1-10 })
+  ratings jsonb not null default '{}',
+  total integer not null default 0,
+  percentage numeric(5,2) not null default 0,
+
+  submitted_at timestamptz default now(),
+
+  unique (employee_id, quarter, year)
+);
+
+alter table quarterly_evaluations enable row level security;
+
+create policy "Allow public insert" on quarterly_evaluations
+  for insert to anon with check (true);
+
+create policy "Allow public read" on quarterly_evaluations
+  for select to anon using (true);

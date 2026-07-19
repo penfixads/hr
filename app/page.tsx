@@ -40,6 +40,12 @@ export default function Home() {
             </Link>
           </div>
 
+          <div className="mt-6">
+            <Link href="/evaluate" className="text-sm font-semibold hover:underline" style={{ color: '#4A0000' }}>
+              Already onboarded? Submit your 15-Point Quarterly Self-Evaluation →
+            </Link>
+          </div>
+
           <p className="mt-10 text-sm text-gray-500">
             No login required — just open the link and fill up your form.
           </p>

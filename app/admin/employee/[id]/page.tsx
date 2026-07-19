@@ -7,6 +7,16 @@ import PenfixFooter from '@/components/PenfixFooter'
 import StarRating from '@/components/StarRating'
 import Link from 'next/link'
 import { CREATIVE_SKILLS, PRODUCTION_SKILLS } from '@/lib/skills'
+import { fifteenPointBand } from '@/lib/fifteenPoint'
+
+type QuarterlyEvaluation = {
+  id: string
+  quarter: string
+  year: number
+  total: number
+  percentage: number
+  submitted_at: string
+}
 
 type Employee = {
   id: string
@@ -52,6 +62,7 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
   const { id } = use(params)
   const [employee, setEmployee] = useState<Employee | null>(null)
   const [bossRatings, setBossRatings] = useState<Record<string, number>>({})
+  const [evaluations, setEvaluations] = useState<QuarterlyEvaluation[]>([])
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
@@ -63,6 +74,10 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
         setEmployee(data as Employee)
         setBossRatings((data as Employee).skills_boss_rating ?? {})
       }
+      const { data: evals } = await supabase
+        .from('quarterly_evaluations').select('id, quarter, year, total, percentage, submitted_at')
+        .eq('employee_id', id).order('year', { ascending: false }).order('quarter', { ascending: false })
+      setEvaluations((evals as QuarterlyEvaluation[]) ?? [])
     }
     load()
   }, [id])
@@ -173,6 +188,42 @@ export default function EmployeeDetailPage({ params }: { params: Promise<{ id: s
             {infoRow('Mobile', employee.emergency_mobile)}
             {infoRow('Alternative Contact', employee.emergency_alt)}
           </div>
+        </div>
+
+        {/* 15-Point Quarterly Evaluation History */}
+        <div className="bg-white rounded-xl border shadow-sm p-6 mb-6">
+          <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: '#4A0000' }}>15-Point Quarterly Evaluation History</h3>
+          {evaluations.length === 0 ? (
+            <p className="text-sm text-gray-400">No quarterly self-evaluations submitted yet.</p>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-xs text-gray-500 border-b">
+                  <th className="text-left py-2 pr-4 font-medium">Quarter</th>
+                  <th className="text-center py-2 px-3 font-medium">Total</th>
+                  <th className="text-center py-2 px-3 font-medium">Percentage</th>
+                  <th className="text-center py-2 px-3 font-medium">Rating</th>
+                  <th className="text-right py-2 pl-3 font-medium">Submitted</th>
+                </tr>
+              </thead>
+              <tbody>
+                {evaluations.map(ev => {
+                  const band = fifteenPointBand(ev.percentage)
+                  return (
+                    <tr key={ev.id} className="border-b border-gray-50">
+                      <td className="py-2 pr-4 font-medium">{ev.quarter} {ev.year}</td>
+                      <td className="py-2 px-3 text-center">{ev.total} / 150</td>
+                      <td className="py-2 px-3 text-center">{ev.percentage.toFixed(1)}%</td>
+                      <td className="py-2 px-3 text-center font-semibold" style={{ color: band.color }}>{band.label}</td>
+                      <td className="py-2 pl-3 text-right text-gray-500 text-xs">
+                        {new Date(ev.submitted_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Skills Assessment */}
