@@ -47,7 +47,7 @@ export default function Home() {
           </div>
 
           <p className="mt-10 text-sm text-gray-500">
-            No login required — just open the link and fill up your form.
+            Select your team and fill up your form.
           </p>
         </div>
       </main>
