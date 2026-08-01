@@ -2,38 +2,11 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { MS_PER_DAY, toDate, daysInclusive, accruedCredits } from '@/lib/leave'
 
 type EmployeeOption = { id: string; full_name: string; team: 'creative' | 'production'; date_joined: string | null }
 type LeaveType = 'Sick Leave' | 'Vacation Leave'
 type ExistingLeave = { employee_id: string; employee_name: string; leave_type: LeaveType; start_date: string; end_date: string; days_requested: number }
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000
-const ANNUAL_CREDITS = 5
-const MONTHLY_ACCRUAL = 0.42
-
-function toDate(s: string) {
-  return new Date(s + 'T00:00:00')
-}
-
-function daysInclusive(start: string, end: string) {
-  return Math.round((toDate(end).getTime() - toDate(start).getTime()) / MS_PER_DAY) + 1
-}
-
-// Accrued credits this year, capped at the annual total: 0.42/month from Jan (or the
-// employee's join month if they joined this year) through the current month, inclusive.
-function accruedCredits(dateJoined: string | null) {
-  const now = new Date()
-  const currentYear = now.getFullYear()
-  const currentMonth = now.getMonth() + 1
-  let startMonth = 1
-  if (dateJoined) {
-    const joined = toDate(dateJoined)
-    if (joined.getFullYear() === currentYear) startMonth = joined.getMonth() + 1
-    else if (joined.getFullYear() > currentYear) return 0
-  }
-  const monthsElapsed = Math.max(0, currentMonth - startMonth + 1)
-  return Math.min(monthsElapsed * MONTHLY_ACCRUAL, ANNUAL_CREDITS)
-}
 
 // Rebuilds the legacy "PENFIX LEAVE FORM" (Name, Start of Leave, End of Leave, Type of
 // Leave [Sick Leave / Vacation Leave only — Emergency/Bereavement route under Vacation

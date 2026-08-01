@@ -10,6 +10,10 @@ type MenuItem = {
   description: string
 }
 
+const MY_RECORDS: MenuItem[] = [
+  { href: '/my-records', icon: '📋', title: 'My Records', description: 'View your attendance, requests, and evaluation history.' },
+]
+
 const FORMS: MenuItem[] = [
   { href: '/cash-advance', icon: '💵', title: 'Cash Advance', description: 'Request a cash advance.' },
   { href: '/loan', icon: '🏦', title: 'Loan', description: 'Request a regular loan, paid in installments.' },
@@ -70,6 +74,11 @@ export default async function Home() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-3 text-penfix-maroon">Welcome</h2>
             <p className="text-gray-600 text-lg">Pick what you&apos;d like to do.</p>
+          </div>
+
+          <SectionLabel>My Records</SectionLabel>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+            {MY_RECORDS.map(item => <MenuCard key={item.href} item={item} />)}
           </div>
 
           <SectionLabel>Forms</SectionLabel>

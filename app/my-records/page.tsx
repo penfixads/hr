@@ -1,0 +1,66 @@
+import PenfixHeader from '@/components/PenfixHeader'
+import PenfixFooter from '@/components/PenfixFooter'
+import EmployeeRecordSummary from '@/components/EmployeeRecordSummary'
+import { getCurrentEmployee } from '@/lib/employee-session'
+import { supabase } from '@/lib/supabase'
+import { getEmployeeRecords } from '@/lib/employee-records'
+import { getMyAttendanceLogs, summarizePayPeriod } from '@/lib/attendance'
+import { getCurrentPayPeriod, getNextPayday } from '@/lib/payday'
+import { getOfficeDateKey } from '@/lib/office-time'
+import { computeLeaveBalances } from '@/lib/leave'
+
+export const metadata = {
+  title: 'My Records — Penfix',
+}
+
+export default async function MyRecordsPage() {
+  const employee = await getCurrentEmployee()
+
+  if (!employee?.id) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <PenfixHeader subtitle="My Records" />
+        <main className="flex-1 flex items-center justify-center px-6 py-16 text-center text-gray-500">
+          No HR record found for your account yet — contact HR if you believe this is a mistake.
+        </main>
+        <PenfixFooter />
+      </div>
+    )
+  }
+
+  const { data: full } = await supabase
+    .from('employees')
+    .select('date_joined')
+    .eq('id', employee.id)
+    .single()
+
+  const payPeriod = getCurrentPayPeriod()
+  const nextPayday = getNextPayday()
+
+  const [records, attendanceLogs] = await Promise.all([
+    getEmployeeRecords(employee.id),
+    getMyAttendanceLogs(payPeriod.start, payPeriod.end),
+  ])
+
+  const attendance = summarizePayPeriod(attendanceLogs, getOfficeDateKey(new Date()))
+  const leaveBalances = computeLeaveBalances(records.leaves, (full as { date_joined: string | null } | null)?.date_joined ?? null)
+
+  return (
+    <div className="flex flex-col min-h-screen">
+      <PenfixHeader subtitle="My Records" />
+      <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
+        <h2 className="text-2xl font-bold mb-6" style={{ color: '#4A0000' }}>{employee.full_name}&apos;s Records</h2>
+        <EmployeeRecordSummary
+          mode="self"
+          employee={{ full_name: employee.full_name, employment_status: employee.employment_status }}
+          records={records}
+          leaveBalances={leaveBalances}
+          payPeriod={payPeriod}
+          nextPayday={nextPayday}
+          attendance={attendance}
+        />
+      </main>
+      <PenfixFooter />
+    </div>
+  )
+}
