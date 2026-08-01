@@ -99,6 +99,11 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
     try {
       const payload = {
         ...personal,
+        // date_of_birth/date_joined are optional `date` columns — Postgres rejects an
+        // empty string for a date type outright (not just "invalid null"), so an
+        // untouched optional date field must be sent as null, not ''.
+        date_of_birth: personal.date_of_birth || null,
+        date_joined: personal.date_joined || null,
         ...gov,
         ...emergency,
         team,
