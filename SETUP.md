@@ -14,7 +14,12 @@ Create `.env.local` in the project root:
 NEXT_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxx.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key_here
 ADMIN_PASSWORD=your_secure_password_here
+ADMIN_EMAILS=owner@penfixads.com,another-admin@penfixads.com
 ```
+
+`ADMIN_EMAILS` is a comma-separated list of Penfix OS login emails that bypass
+employment-status gates (e.g. the Loan form's Regular-only restriction),
+regardless of what their `employees` HR record says.
 
 ## 3. GitHub Setup
 
@@ -33,6 +38,7 @@ git push -u origin main
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `ADMIN_PASSWORD`
+   - `ADMIN_EMAILS`
 3. Deploy
 
 ## 5. Custom Domain

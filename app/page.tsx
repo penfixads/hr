@@ -55,8 +55,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 export default async function Home() {
   const employee = await getCurrentEmployee()
   // Loan is only available to Regular employees — Trainees and Probationary hires
-  // don't yet qualify for the payday-installment loan program.
-  const forms = employee?.employment_status === 'Regular'
+  // don't yet qualify for the payday-installment loan program. Admins (ADMIN_EMAILS)
+  // bypass this regardless of their HR record.
+  const forms = (employee?.employment_status === 'Regular' || employee?.isAdmin)
     ? FORMS
     : FORMS.filter(item => item.href !== '/loan')
 

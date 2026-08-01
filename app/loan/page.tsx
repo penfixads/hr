@@ -10,7 +10,7 @@ export const metadata = {
 
 export default async function LoanPage() {
   const employee = await getCurrentEmployee()
-  if (employee?.employment_status !== 'Regular') {
+  if (employee?.employment_status !== 'Regular' && !employee?.isAdmin) {
     redirect('/?error=regular-only')
   }
 
