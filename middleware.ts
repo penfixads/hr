@@ -54,7 +54,7 @@ export async function middleware(request: NextRequest) {
   // employees (e.g. tools-only custodians) who need to fill their assessment.
   const { data: userData } = await supabase
     .from('users')
-    .select('is_active')
+    .select('is_active, role')
     .eq('user_email', user.email)
     .single()
 
@@ -63,6 +63,17 @@ export async function middleware(request: NextRequest) {
     loginUrl.pathname = '/login'
     loginUrl.searchParams.set('error', 'no-access')
     return NextResponse.redirect(loginUrl)
+  }
+
+  // /admin (Boss Allen dashboard + employee detail pages) requires the Admin role on
+  // the same shared Penfix OS account — same mechanism the attendance app uses
+  // (`u.role = 'Admin'` in employee_face_descriptors' admin_select_all policy), so
+  // there's one login and one role everywhere instead of a separate admin password.
+  if (pathname.startsWith('/admin') && userData.role !== 'Admin') {
+    const homeUrl = request.nextUrl.clone()
+    homeUrl.pathname = '/'
+    homeUrl.searchParams.set('error', 'admin-only')
+    return NextResponse.redirect(homeUrl)
   }
 
   return supabaseResponse

@@ -100,13 +100,22 @@ create policy "Allow public read" on quarterly_evaluations
 
 -- Cash Advance Requests — rebuilds the legacy "PENFIX CASH ADVANCE FORM" Google Form
 -- (Name, Date, Amount — all required) as a proper table tied to employees instead of
--- a free-text name.
+-- a free-text name. Cash advances are effectively "emergency loans" per GENERAL
+-- POLICY.docx, which require management approval before release — status/approved_by/
+-- resolved_at mirror the exact pattern penfixads-OS uses for its Pending Approval page
+-- (migration 005_credit_line_request.sql).
 create table if not exists cash_advance_requests (
   id uuid primary key default gen_random_uuid(),
   employee_id uuid not null references employees(id) on delete cascade,
   employee_name text not null,
   request_date date not null,
   amount numeric(10,2) not null check (amount > 0),
+  reason text,
+
+  status text not null default 'Pending' check (status in ('Pending', 'Approved', 'Rejected')),
+  approved_by text,
+  resolved_at timestamptz,
+  reject_note text,
 
   submitted_at timestamptz default now()
 );
@@ -117,6 +126,35 @@ create policy "Allow public insert" on cash_advance_requests
   for insert to anon with check (true);
 
 create policy "Allow public read" on cash_advance_requests
+  for select to anon using (true);
+
+-- Loan Requests — same shape as cash_advance_requests, but for a regular (non-emergency)
+-- loan, which is repaid in installments rather than deducted in one go. Adds
+-- payment_per_payday: how much the employee commits to paying back each payday, with a
+-- 500 floor per GENERAL POLICY.docx minimum installment guidance.
+create table if not exists loan_requests (
+  id uuid primary key default gen_random_uuid(),
+  employee_id uuid not null references employees(id) on delete cascade,
+  employee_name text not null,
+  request_date date not null,
+  amount numeric(10,2) not null check (amount > 0),
+  payment_per_payday numeric(10,2) not null check (payment_per_payday >= 500),
+  reason text,
+
+  status text not null default 'Pending' check (status in ('Pending', 'Approved', 'Rejected')),
+  approved_by text,
+  resolved_at timestamptz,
+  reject_note text,
+
+  submitted_at timestamptz default now()
+);
+
+alter table loan_requests enable row level security;
+
+create policy "Allow public insert" on loan_requests
+  for insert to anon with check (true);
+
+create policy "Allow public read" on loan_requests
   for select to anon using (true);
 
 -- Overtime — filed_late is computed client-side at submission time: true when submitted

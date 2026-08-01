@@ -13,6 +13,11 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-penfix-maroon: var(--penfix-maroon);
+  --color-penfix-maroon-light: var(--penfix-maroon-light);
+  --color-penfix-gold: var(--penfix-gold);
+  --color-penfix-gold-light: var(--penfix-gold-light);
+  --color-penfix-gold-dark: var(--penfix-gold-dark);
 }
 
 body {

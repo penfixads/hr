@@ -53,11 +53,6 @@ function raiseLabel(score: number) {
 }
 
 export default function AdminPage() {
-  const [authed, setAuthed] = useState(false)
-  const [password, setPassword] = useState('')
-  const [loginError, setLoginError] = useState('')
-  const [loginLoading, setLoginLoading] = useState(false)
-
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
   const [sortKey, setSortKey] = useState<SortKey>('submitted_at')
@@ -73,31 +68,8 @@ export default function AdminPage() {
   }, [])
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const res = await fetch('/api/admin-check')
-      if (res.ok) { setAuthed(true); fetchEmployees() }
-    }
-    checkAuth()
+    fetchEmployees()
   }, [fetchEmployees])
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoginLoading(true)
-    setLoginError('')
-    const res = await fetch('/api/admin-login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    })
-    if (res.ok) { setAuthed(true); fetchEmployees() }
-    else { setLoginError('Incorrect password. Please try again.') }
-    setLoginLoading(false)
-  }
-
-  const handleLogout = async () => {
-    await fetch('/api/admin-logout', { method: 'POST' })
-    setAuthed(false)
-    setEmployees([])
-  }
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
@@ -145,37 +117,6 @@ export default function AdminPage() {
   const totalCreative = employees.filter(e => e.team === 'creative').length
   const totalProduction = employees.filter(e => e.team === 'production').length
 
-  if (!authed) {
-    return (
-      <div className="flex flex-col min-h-screen">
-        <PenfixHeader />
-        <main className="flex-1 flex items-center justify-center px-4 py-16">
-          <div className="w-full max-w-sm">
-            <div className="bg-white rounded-2xl shadow-lg p-8 border border-gray-100">
-              <h2 className="text-2xl font-bold text-center mb-2" style={{ color: '#4A0000' }}>Admin Access</h2>
-              <p className="text-center text-gray-500 text-sm mb-6">Enter the admin password to continue</p>
-              <form onSubmit={handleLogin} className="space-y-4">
-                <input
-                  type="password" value={password} onChange={e => setPassword(e.target.value)}
-                  placeholder="Password" required autoFocus
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2"
-                  style={{ '--tw-ring-color': '#C9A84C' } as React.CSSProperties}
-                />
-                {loginError && <p className="text-red-600 text-sm">{loginError}</p>}
-                <button type="submit" disabled={loginLoading}
-                  className="w-full py-3 rounded-lg font-semibold text-white transition hover:opacity-90 disabled:opacity-60"
-                  style={{ backgroundColor: '#4A0000' }}>
-                  {loginLoading ? 'Logging in...' : 'Login'}
-                </button>
-              </form>
-            </div>
-          </div>
-        </main>
-        <PenfixFooter />
-      </div>
-    )
-  }
-
   const SortIcon = ({ k }: { k: SortKey }) => (
     <span className="ml-1 text-xs opacity-60">
       {sortKey === k ? (sortDir === 'asc' ? '↑' : '↓') : '↕'}
@@ -220,11 +161,6 @@ export default function AdminPage() {
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
               style={{ backgroundColor: '#C9A84C' }}>
               ↓ Export CSV
-            </button>
-            <button onClick={handleLogout}
-              className="px-4 py-2 rounded-lg text-sm font-semibold border transition hover:bg-gray-50"
-              style={{ borderColor: '#4A0000', color: '#4A0000' }}>
-              Logout
             </button>
           </div>
         </div>

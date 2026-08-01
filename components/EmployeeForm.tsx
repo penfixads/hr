@@ -70,10 +70,20 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
     setRatings(prev => ({ ...prev, [skill]: val }))
   }
 
-  // TEMPORARILY BYPASSED — required-field checks disabled so staff can freely click through
-  // every step to review the form's completeness without being blocked by empty fields.
-  // Restore the two `if` blocks below once that review is done.
   const validateStep = () => {
+    if (step === 0) {
+      if (!personal.full_name || !personal.employee_number || !personal.position ||
+          !personal.employment_status || !personal.address || !personal.mobile || !personal.email) {
+        setError('Please fill in all required fields.')
+        return false
+      }
+    }
+    if (step === 1) {
+      if (!emergency.emergency_name || !emergency.emergency_relationship || !emergency.emergency_mobile) {
+        setError('Please fill in all required emergency contact fields.')
+        return false
+      }
+    }
     setError('')
     return true
   }

@@ -10,18 +10,27 @@ function getAdminClient() {
 }
 
 export async function POST(req: NextRequest) {
-  if (!(await getAdminSession())) {
+  const admin = await getAdminSession()
+  if (!admin) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const { employee_id, boss_ratings } = await req.json()
-  const supabase = getAdminClient()
+  const { request_id, decision, reject_note } = await req.json()
+  if (!request_id || (decision !== 'Approved' && decision !== 'Rejected')) {
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
+  }
 
+  const supabase = getAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { error } = await (supabase as any)
-    .from('employees')
-    .update({ skills_boss_rating: boss_ratings })
-    .eq('id', employee_id)
+    .from('cash_advance_requests')
+    .update({
+      status: decision,
+      approved_by: admin.name || admin.email,
+      resolved_at: new Date().toISOString(),
+      reject_note: decision === 'Rejected' ? (reject_note || null) : null,
+    })
+    .eq('id', request_id)
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })

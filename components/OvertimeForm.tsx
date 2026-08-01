@@ -7,6 +7,11 @@ type EmployeeOption = { id: string; full_name: string; team: 'creative' | 'produ
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000
 
+const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-penfix-gold focus:border-transparent"
+const labelClass = "block text-sm font-medium text-gray-700 mb-1"
+const buttonClass = "px-8 py-2.5 rounded-lg font-semibold text-sm text-white bg-penfix-gold transition-all hover:bg-penfix-gold-dark hover:shadow-md active:scale-[0.98] disabled:opacity-60 disabled:hover:bg-penfix-gold disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-penfix-gold focus-visible:ring-offset-2"
+const cardClass = "max-w-2xl mx-auto w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8"
+
 // Rebuilds the legacy "PENFIX OVERTIME FORM" (Name, Date, Start Time, End Time, and a
 // field literally labeled "Question" — renamed here to "Reason for Overtime", it's the
 // same reason/justification role "Reason for X" plays on the other forms).
@@ -72,23 +77,21 @@ export default function OvertimeForm() {
 
   if (submitted) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-center px-6">
-        <div className="text-6xl mb-6">✅</div>
-        <h2 className="text-2xl font-bold mb-3" style={{ color: '#4A0000' }}>Overtime Filed!</h2>
-        <p className="text-gray-600 text-lg max-w-md">
-          Thank you, {selected?.full_name} — your overtime for {otDate} has been recorded.
-        </p>
+      <div className={cardClass}>
+        <div className="flex flex-col items-center justify-center py-10 text-center px-6">
+          <div className="text-6xl mb-6">✅</div>
+          <h2 className="text-2xl font-bold mb-3 text-penfix-maroon">Overtime Filed!</h2>
+          <p className="text-gray-600 text-lg max-w-md">
+            Thank you, {selected?.full_name} — your overtime for {otDate} has been recorded.
+          </p>
+        </div>
       </div>
     )
   }
 
-  const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
-  const focusStyle = { '--tw-ring-color': '#C9A84C' } as React.CSSProperties
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1"
-
   return (
-    <div className="max-w-2xl mx-auto w-full">
-      <h3 className="text-lg font-bold mb-1" style={{ color: '#4A0000' }}>Overtime Form</h3>
+    <div className={cardClass}>
+      <h3 className="text-lg font-bold mb-1 text-penfix-maroon">Overtime Form</h3>
       <p className="text-sm text-gray-500 mb-6">
         Must be filed within 3 days after the overtime was worked, and requires prior notice to your
         supervisor, per company policy.
@@ -96,9 +99,9 @@ export default function OvertimeForm() {
 
       <div className="space-y-4 mb-6">
         <div className="relative">
-          <label className={labelClass}>Name</label>
+          <label className={labelClass}>Name <span className="text-red-500">*</span></label>
           <input
-            style={focusStyle} className={inputClass}
+            className={inputClass}
             placeholder={loadingEmployees ? 'Loading employees...' : 'Search your name...'}
             value={selected ? selected.full_name : search}
             onChange={e => { setSelectedId(''); setSearch(e.target.value) }}
@@ -120,27 +123,27 @@ export default function OvertimeForm() {
         </div>
 
         <div>
-          <label className={labelClass}>Date</label>
-          <input type="date" style={focusStyle} className={inputClass} value={otDate}
+          <label className={labelClass}>Date <span className="text-red-500">*</span></label>
+          <input type="date" className={inputClass} value={otDate}
             onChange={e => setOtDate(e.target.value)} />
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className={labelClass}>Start Time</label>
-            <input type="time" style={focusStyle} className={inputClass} value={startTime}
+            <label className={labelClass}>Start Time <span className="text-red-500">*</span></label>
+            <input type="time" className={inputClass} value={startTime}
               onChange={e => setStartTime(e.target.value)} />
           </div>
           <div>
-            <label className={labelClass}>End Time</label>
-            <input type="time" style={focusStyle} className={inputClass} value={endTime}
+            <label className={labelClass}>End Time <span className="text-red-500">*</span></label>
+            <input type="time" className={inputClass} value={endTime}
               onChange={e => setEndTime(e.target.value)} />
           </div>
         </div>
 
         <div>
-          <label className={labelClass}>Reason for Overtime</label>
-          <textarea rows={3} style={focusStyle} className={inputClass} value={reason}
+          <label className={labelClass}>Reason for Overtime <span className="text-red-500">*</span></label>
+          <textarea rows={3} className={inputClass} value={reason}
             onChange={e => setReason(e.target.value)} />
         </div>
       </div>
@@ -157,9 +160,7 @@ export default function OvertimeForm() {
       )}
 
       <div className="flex justify-end pt-4 border-t border-gray-200">
-        <button onClick={handleSubmit} disabled={submitting || !canSubmit}
-          className="px-8 py-2 rounded-lg font-semibold text-sm text-white transition-colors hover:opacity-90 disabled:opacity-60"
-          style={{ backgroundColor: '#C9A84C' }}>
+        <button onClick={handleSubmit} disabled={submitting || !canSubmit} className={buttonClass}>
           {submitting ? 'Submitting...' : '✓ Submit Overtime'}
         </button>
       </div>

@@ -10,16 +10,19 @@ const labelClass = "block text-sm font-medium text-gray-700 mb-1"
 const buttonClass = "px-8 py-2.5 rounded-lg font-semibold text-sm text-white bg-penfix-gold transition-all hover:bg-penfix-gold-dark hover:shadow-md active:scale-[0.98] disabled:opacity-60 disabled:hover:bg-penfix-gold disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-penfix-gold focus-visible:ring-offset-2"
 const cardClass = "max-w-2xl mx-auto w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8"
 
-// Rebuilds the legacy "PENFIX CASH ADVANCE FORM" Google Form (Name, Date, Amount — all
-// required). Name is a search-select against `employees` instead of free text, matching
-// the pattern QuarterlyEvaluationForm already uses, so requests tie to a real employee_id.
-export default function CashAdvanceForm() {
+const MIN_PAYMENT_PER_PAYDAY = 500
+
+// Same shape as CashAdvanceForm, but for a regular loan repaid in installments instead of
+// a one-time emergency advance. Adds payment_per_payday (500 minimum per GENERAL
+// POLICY.docx) and derives the number of paydays needed to pay it off.
+export default function LoanForm() {
   const [employees, setEmployees] = useState<EmployeeOption[]>([])
   const [loadingEmployees, setLoadingEmployees] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedId, setSelectedId] = useState('')
   const [requestDate, setRequestDate] = useState('')
   const [amount, setAmount] = useState('')
+  const [paymentPerPayday, setPaymentPerPayday] = useState('')
   const [reason, setReason] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
@@ -35,7 +38,11 @@ export default function CashAdvanceForm() {
   const selected = employees.find(e => e.id === selectedId) || null
   const filteredEmployees = employees.filter(e => e.full_name.toLowerCase().includes(search.toLowerCase()))
   const amountValue = Number(amount)
-  const canSubmit = !!selected && !!requestDate && amount !== '' && amountValue > 0 && reason.trim() !== ''
+  const paymentValue = Number(paymentPerPayday)
+  const paymentMeetsMinimum = paymentPerPayday !== '' && paymentValue >= MIN_PAYMENT_PER_PAYDAY
+  const numberOfPayments = amountValue > 0 && paymentMeetsMinimum ? Math.ceil(amountValue / paymentValue) : 0
+  const canSubmit = !!selected && !!requestDate && amount !== '' && amountValue > 0
+    && paymentMeetsMinimum && reason.trim() !== ''
 
   function selectEmployee(emp: EmployeeOption) {
     setSelectedId(emp.id)
@@ -51,10 +58,11 @@ export default function CashAdvanceForm() {
       employee_name: selected.full_name,
       request_date: requestDate,
       amount: amountValue,
+      payment_per_payday: paymentValue,
       reason: reason.trim(),
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const { error: sbErr } = await (supabase as any).from('cash_advance_requests').insert([payload])
+    const { error: sbErr } = await (supabase as any).from('loan_requests').insert([payload])
     setSubmitting(false)
     if (sbErr) {
       setError(sbErr.message || 'Submission failed. Please try again.')
@@ -70,7 +78,8 @@ export default function CashAdvanceForm() {
           <div className="text-6xl mb-6">✅</div>
           <h2 className="text-2xl font-bold mb-3 text-penfix-maroon">Request Submitted!</h2>
           <p className="text-gray-600 text-lg max-w-md">
-            Thank you, {selected?.full_name} — your cash advance request of ₱{amountValue.toLocaleString()} has been recorded.
+            Thank you, {selected?.full_name} — your loan request of ₱{amountValue.toLocaleString()},
+            payable at ₱{paymentValue.toLocaleString()} per payday over {numberOfPayments} payday{numberOfPayments === 1 ? '' : 's'}, has been recorded.
           </p>
         </div>
       </div>
@@ -79,9 +88,9 @@ export default function CashAdvanceForm() {
 
   return (
     <div className={cardClass}>
-      <h3 className="text-lg font-bold mb-1 text-penfix-maroon">Cash Advance Request</h3>
+      <h3 className="text-lg font-bold mb-1 text-penfix-maroon">Loan Request</h3>
       <p className="text-sm text-gray-500 mb-6">
-        Fill out this form to request a cash advance.
+        Fill out this form to request a regular loan, repaid in installments every payday.
       </p>
 
       <div className="space-y-4 mb-6">
@@ -116,14 +125,30 @@ export default function CashAdvanceForm() {
         </div>
 
         <div>
-          <label className={labelClass}>Amount <span className="text-red-500">*</span></label>
+          <label className={labelClass}>Loan Amount <span className="text-red-500">*</span></label>
           <input type="number" inputMode="decimal" min="0" step="0.01" className={inputClass}
             placeholder="0.00" value={amount}
             onChange={e => setAmount(e.target.value)} />
         </div>
 
         <div>
-          <label className={labelClass}>Reason for Cash Advance <span className="text-red-500">*</span></label>
+          <label className={labelClass}>Amount Willing to Pay per Payday <span className="text-red-500">*</span></label>
+          <input type="number" inputMode="decimal" min={MIN_PAYMENT_PER_PAYDAY} step="0.01" className={inputClass}
+            placeholder={`Minimum ₱${MIN_PAYMENT_PER_PAYDAY}`} value={paymentPerPayday}
+            onChange={e => setPaymentPerPayday(e.target.value)} />
+          {paymentPerPayday !== '' && !paymentMeetsMinimum && (
+            <p className="text-xs text-red-500 mt-1">Minimum is ₱{MIN_PAYMENT_PER_PAYDAY.toLocaleString()} per payday.</p>
+          )}
+        </div>
+
+        {numberOfPayments > 0 && (
+          <div className="p-3 bg-penfix-gold/10 border border-penfix-gold/30 rounded-lg text-sm text-penfix-maroon">
+            This loan will be paid off in <span className="font-bold">{numberOfPayments}</span> payday{numberOfPayments === 1 ? '' : 's'}.
+          </div>
+        )}
+
+        <div>
+          <label className={labelClass}>Reason for Loan <span className="text-red-500">*</span></label>
           <textarea rows={3} className={inputClass} value={reason}
             onChange={e => setReason(e.target.value)} />
         </div>
