@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
+import { getCurrentEmployee } from '@/lib/employee-session'
 
 type MenuItem = {
   href: string
@@ -51,7 +52,14 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default function Home() {
+export default async function Home() {
+  const employee = await getCurrentEmployee()
+  // Loan is only available to Regular employees — Trainees and Probationary hires
+  // don't yet qualify for the payday-installment loan program.
+  const forms = employee?.employment_status === 'Regular'
+    ? FORMS
+    : FORMS.filter(item => item.href !== '/loan')
+
   return (
     <div className="flex flex-col min-h-screen">
       <PenfixHeader subtitle="Employee Portal" />
@@ -65,7 +73,7 @@ export default function Home() {
 
           <SectionLabel>Forms</SectionLabel>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-            {FORMS.map(item => <MenuCard key={item.href} item={item} />)}
+            {forms.map(item => <MenuCard key={item.href} item={item} />)}
           </div>
 
           <SectionLabel>Evaluation</SectionLabel>
