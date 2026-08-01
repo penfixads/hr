@@ -14,6 +14,10 @@ const MY_RECORDS: MenuItem[] = [
   { href: '/my-records', icon: '📋', title: 'My Records', description: 'View your attendance, requests, and evaluation history.' },
 ]
 
+const ADMIN_DASHBOARD: MenuItem[] = [
+  { href: '/admin', icon: '🛠️', title: 'Admin Dashboard', description: 'Manage employees, records, and requests.' },
+]
+
 const FORMS: MenuItem[] = [
   { href: '/cash-advance', icon: '💵', title: 'Cash Advance', description: 'Request a cash advance.' },
   { href: '/loan', icon: '🏦', title: 'Loan', description: 'Request a regular loan, paid in installments.' },
@@ -64,6 +68,7 @@ export default async function Home() {
   const forms = (employee?.employment_status === 'Regular' || employee?.isAdmin)
     ? FORMS
     : FORMS.filter(item => item.href !== '/loan')
+  const myRecords = employee?.isAdmin ? ADMIN_DASHBOARD : MY_RECORDS
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -76,9 +81,9 @@ export default async function Home() {
             <p className="text-gray-600 text-lg">Pick what you&apos;d like to do.</p>
           </div>
 
-          <SectionLabel>My Records</SectionLabel>
+          <SectionLabel>{employee?.isAdmin ? 'Admin' : 'My Records'}</SectionLabel>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-            {MY_RECORDS.map(item => <MenuCard key={item.href} item={item} />)}
+            {myRecords.map(item => <MenuCard key={item.href} item={item} />)}
           </div>
 
           <SectionLabel>Forms</SectionLabel>

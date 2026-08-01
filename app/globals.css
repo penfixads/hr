@@ -1,10 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f9f7f4;
+  /* Same canvas + chrome colors as Penfix OS (jobs.penfixads.com) */
+  --background: #F9EBD8;
   --foreground: #1a1a1a;
   --penfix-maroon: #4A0000;
   --penfix-maroon-light: #6B0000;
+  --penfix-maroon-dark: #5C001F;
   --penfix-gold: #C9A84C;
   --penfix-gold-light: #D9BB6E;
   --penfix-gold-dark: #A8872C;
@@ -15,6 +17,7 @@
   --color-foreground: var(--foreground);
   --color-penfix-maroon: var(--penfix-maroon);
   --color-penfix-maroon-light: var(--penfix-maroon-light);
+  --color-penfix-maroon-dark: var(--penfix-maroon-dark);
   --color-penfix-gold: var(--penfix-gold);
   --color-penfix-gold-light: var(--penfix-gold-light);
   --color-penfix-gold-dark: var(--penfix-gold-dark);
@@ -23,5 +26,60 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
+
+/* ============================================================
+   Penfix form fields — light underline style, same source of truth
+   as Penfix OS's app/globals.css. Wrap each field in .pf-field; label
+   = .pf-label; controls = .pf-input / .pf-select / .pf-textarea.
+   ============================================================ */
+.pf-field { margin-bottom: 1.15rem; }
+.pf-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #8a7d80;
+  margin-bottom: 0.5rem;
+  letter-spacing: 0.01em;
+}
+.pf-input, .pf-select, .pf-textarea {
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid #d8ccc0;
+  border-radius: 0;
+  padding: 0.5rem 0.15rem;
+  font-size: 0.9rem;
+  color: #2a2426;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+.pf-input::placeholder, .pf-textarea::placeholder { color: #b7abae; }
+.pf-input:focus, .pf-select:focus, .pf-textarea:focus { border-bottom-color: #5C001F; }
+
+/* Penfix buttons — maroon fill, gold border, same source of truth as OS. */
+.pf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: #5C001F;
+  color: #fff;
+  border: 1.5px solid #C9A84C;
+  border-radius: 8px;
+  font-family: inherit;
+  font-weight: 500;
+  font-size: 0.8rem;
+  line-height: 1.25;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease;
+}
+.pf-btn:hover { background: #7A1828; }
+.pf-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.45); }
+.pf-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.pf-btn svg { width: 0.9rem; height: 0.9rem; flex-shrink: 0; }
+.pf-btn-block { width: 100%; padding: 0.85rem; font-size: 1rem; letter-spacing: 0.5px; }
