@@ -77,6 +77,12 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
         setError('Please fill in all required fields.')
         return false
       }
+      // Requires First Middle Last — a hyphenated surname (e.g. "Jacinto-Quiambao") still
+      // counts as one part, so this just checks there are 3+ space-separated words.
+      if (personal.full_name.trim().split(/\s+/).length < 3) {
+        setError('Please enter your full name including a middle name, e.g. Maria Allen Jacinto-Quiambao.')
+        return false
+      }
     }
     if (step === 1) {
       if (!emergency.emergency_name || !emergency.emergency_relationship || !emergency.emergency_mobile) {
@@ -176,6 +182,7 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
             <div>
               <label className={labelClass}>Full Name {requiredStar}</label>
               <input style={focusStyle} className={inputClass} value={personal.full_name}
+                placeholder="Ex. Maria Allen Jacinto-Quiambao"
                 onChange={e => setPersonal(p => ({ ...p, full_name: e.target.value }))} />
             </div>
             <div>
