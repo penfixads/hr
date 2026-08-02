@@ -71,6 +71,13 @@ export default function AdminPage() {
     fetchEmployees()
   }, [fetchEmployees])
 
+  const deleteEmployee = async (emp: Employee) => {
+    if (!confirm(`Delete "${emp.full_name}"'s record (${emp.team})? This cannot be undone.`)) return
+    const { error } = await supabase.from('employees').delete().eq('id', emp.id)
+    if (error) { alert(error.message || 'Failed to delete record.'); return }
+    setEmployees(prev => prev.filter(e => e.id !== emp.id))
+  }
+
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortKey(key); setSortDir('asc') }
@@ -228,11 +235,23 @@ export default function AdminPage() {
                           ) : <span className="text-gray-400 text-xs">—</span>}
                         </td>
                         <td className="px-4 py-3">
-                          <Link href={`/admin/employee/${emp.id}`}
-                            className="px-3 py-1 rounded-lg text-xs font-semibold text-white transition hover:opacity-80"
-                            style={{ backgroundColor: '#4A0000' }}>
-                            View
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link href={`/admin/employee/${emp.id}`}
+                              className="px-3 py-1 rounded-lg text-xs font-semibold text-white transition hover:opacity-80"
+                              style={{ backgroundColor: '#4A0000' }}>
+                              View
+                            </Link>
+                            <button onClick={() => deleteEmployee(emp)} title="Delete record"
+                              className="p-1.5 rounded-lg text-white transition hover:opacity-80"
+                              style={{ backgroundColor: '#dc2626' }}>
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                <path d="M10 11v6" /><path d="M14 11v6" />
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                              </svg>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     )

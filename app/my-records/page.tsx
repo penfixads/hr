@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import EmployeeRecordSummary from '@/components/EmployeeRecordSummary'
@@ -49,7 +50,14 @@ export default async function MyRecordsPage() {
     <div className="flex flex-col min-h-screen">
       <PenfixHeader subtitle="My Records" />
       <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
-        <h2 className="text-2xl font-bold mb-6" style={{ color: '#4A0000' }}>{employee.full_name}&apos;s Records</h2>
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+          <h2 className="text-2xl font-bold" style={{ color: '#4A0000' }}>{employee.full_name}&apos;s Records</h2>
+          <Link href="/my-records/edit"
+            className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+            style={{ backgroundColor: '#4A0000' }}>
+            Edit My Info
+          </Link>
+        </div>
         <EmployeeRecordSummary
           mode="self"
           employee={{ full_name: employee.full_name, employment_status: employee.employment_status }}

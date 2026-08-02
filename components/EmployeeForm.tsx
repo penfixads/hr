@@ -40,6 +40,12 @@ interface EmergencyContact {
 
 const STEPS = ['Personal Information', 'Gov\'t Numbers & Emergency Contact', 'Skills Self-Assessment', 'Review & Submit']
 
+// Capitalizes the first letter of each word/hyphenated segment as the user types, without
+// touching the rest of what they typed — so intentional interior caps (e.g. "McDonald") survive.
+function toTitleCase(value: string) {
+  return value.replace(/(^|[\s-])([a-z])/g, (_, sep, char) => sep + char.toUpperCase())
+}
+
 export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
   const [step, setStep] = useState(0)
   const [submitted, setSubmitted] = useState(false)
@@ -183,7 +189,7 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
               <label className={labelClass}>Full Name {requiredStar}</label>
               <input style={focusStyle} className={inputClass} value={personal.full_name}
                 placeholder="Ex. Maria Allen Jacinto-Quiambao"
-                onChange={e => setPersonal(p => ({ ...p, full_name: e.target.value }))} />
+                onChange={e => setPersonal(p => ({ ...p, full_name: toTitleCase(e.target.value) }))} />
             </div>
             <div>
               <label className={labelClass}>Employee Number {requiredStar}</label>
@@ -286,7 +292,7 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
               <div>
                 <label className={labelClass}>Emergency Contact Name {requiredStar}</label>
                 <input style={focusStyle} className={inputClass} value={emergency.emergency_name}
-                  onChange={e => setEmergency(ec => ({ ...ec, emergency_name: e.target.value }))} />
+                  onChange={e => setEmergency(ec => ({ ...ec, emergency_name: toTitleCase(e.target.value) }))} />
               </div>
               <div>
                 <label className={labelClass}>Relationship {requiredStar}</label>
