@@ -16,6 +16,7 @@ const MY_RECORDS: MenuItem[] = [
 
 const ADMIN_DASHBOARD: MenuItem[] = [
   { href: '/admin', icon: '🛠️', title: 'Admin Dashboard', description: 'Manage employees, records, and requests.' },
+  { href: '/admin/assess', icon: '⭐', title: 'Skills Assessment', description: 'Rate employee skills, one at a time, for raise consideration.' },
 ]
 
 const FORMS: MenuItem[] = [

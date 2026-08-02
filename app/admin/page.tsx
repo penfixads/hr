@@ -241,6 +241,11 @@ export default function AdminPage() {
                               style={{ backgroundColor: '#4A0000' }}>
                               View
                             </Link>
+                            <Link href={`/admin/assess?employee=${emp.id}`} title="Evaluate skills"
+                              className="px-3 py-1 rounded-lg text-xs font-semibold text-white transition hover:opacity-80"
+                              style={{ backgroundColor: '#C9A84C' }}>
+                              ⭐ Evaluate
+                            </Link>
                             <button onClick={() => deleteEmployee(emp)} title="Delete record"
                               className="p-1.5 rounded-lg text-white transition hover:opacity-80"
                               style={{ backgroundColor: '#dc2626' }}>
