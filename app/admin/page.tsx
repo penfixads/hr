@@ -236,15 +236,20 @@ export default function AdminPage() {
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
-                            <Link href={`/admin/employee/${emp.id}`}
-                              className="px-3 py-1 rounded-lg text-xs font-semibold text-white transition hover:opacity-80"
+                            <Link href={`/admin/employee/${emp.id}`} title="View record"
+                              className="p-1.5 rounded-lg text-white transition hover:opacity-80"
                               style={{ backgroundColor: '#4A0000' }}>
-                              View
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
                             </Link>
                             <Link href={`/admin/assess?employee=${emp.id}`} title="Evaluate skills"
-                              className="px-3 py-1 rounded-lg text-xs font-semibold text-white transition hover:opacity-80"
+                              className="p-1.5 rounded-lg text-white transition hover:opacity-80"
                               style={{ backgroundColor: '#C9A84C' }}>
-                              ⭐ Evaluate
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 17 5.5 21 7.5 13.5 2 9 9 9" />
+                              </svg>
                             </Link>
                             <button onClick={() => deleteEmployee(emp)} title="Delete record"
                               className="p-1.5 rounded-lg text-white transition hover:opacity-80"
