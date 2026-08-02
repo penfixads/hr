@@ -55,6 +55,10 @@ create policy "Allow public read" on employees
 create policy "Allow public update" on employees
   for update to anon using (true);
 
+-- Allow deletes (admin dashboard's per-record delete action)
+create policy "Allow public delete" on employees
+  for delete to anon using (true);
+
 -- Auto-update updated_at
 create or replace function update_updated_at()
 returns trigger as $$
