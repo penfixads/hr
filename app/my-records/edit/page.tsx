@@ -1,6 +1,7 @@
 import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import EmployeeEditForm from '@/components/EmployeeEditForm'
+import SkillsSelfRatingEditor from '@/components/SkillsSelfRatingEditor'
 import { getCurrentEmployee } from '@/lib/employee-session'
 import { supabase } from '@/lib/supabase'
 
@@ -25,7 +26,7 @@ export default async function EditMyRecordPage() {
 
   const { data } = await supabase
     .from('employees')
-    .select('nickname, date_of_birth, address, mobile, telephone, email, sss_number, pagibig_number, philhealth_number, emergency_name, emergency_relationship, emergency_mobile, emergency_alt')
+    .select('nickname, date_of_birth, address, mobile, telephone, email, sss_number, pagibig_number, philhealth_number, emergency_name, emergency_relationship, emergency_mobile, emergency_alt, team, skills_self_rating')
     .eq('id', employee.id)
     .single()
 
@@ -43,6 +44,8 @@ export default async function EditMyRecordPage() {
     emergency_relationship: string | null
     emergency_mobile: string | null
     emergency_alt: string | null
+    team: string | null
+    skills_self_rating: Record<string, number> | null
   } | null
 
   return (
@@ -71,6 +74,14 @@ export default async function EditMyRecordPage() {
             emergency_alt: record?.emergency_alt ?? '',
           }}
         />
+
+        <div className="mt-6">
+          <SkillsSelfRatingEditor
+            employeeId={employee.id}
+            team={record?.team ?? 'creative'}
+            initial={record?.skills_self_rating ?? {}}
+          />
+        </div>
       </main>
       <PenfixFooter />
     </div>

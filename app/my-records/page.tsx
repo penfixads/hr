@@ -11,7 +11,7 @@ import { getOfficeDateKey } from '@/lib/office-time'
 import { computeLeaveBalances } from '@/lib/leave'
 
 export const metadata = {
-  title: 'My Records — Penfix',
+  title: 'MyHR — Penfix',
 }
 
 export default async function MyRecordsPage() {
@@ -20,7 +20,7 @@ export default async function MyRecordsPage() {
   if (!employee?.id) {
     return (
       <div className="flex flex-col min-h-screen">
-        <PenfixHeader subtitle="My Records" />
+        <PenfixHeader subtitle="MyHR" />
         <main className="flex-1 flex items-center justify-center px-6 py-16 text-center text-gray-500">
           No HR record found for your account yet — contact HR if you believe this is a mistake.
         </main>
@@ -48,7 +48,7 @@ export default async function MyRecordsPage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <PenfixHeader subtitle="My Records" />
+      <PenfixHeader subtitle="MyHR" />
       <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <h2 className="text-2xl font-bold" style={{ color: '#4A0000' }}>{employee.full_name}&apos;s Records</h2>

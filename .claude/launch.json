@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "hr-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "-p", "3003"],
+      "port": 3003
+    },
+    {
+      "name": "payroll-dev",
+      "runtimeExecutable": "cmd.exe",
+      "runtimeArgs": ["/c", "cd /d \"C:\\PENFIX WEBSITES\\payroll\" && npm run dev -- -p 3005"],
+      "port": 3005
+    },
+    {
+      "name": "penfixads-os-dev",
+      "runtimeExecutable": "C:\\PENFIX WEBSITES\\hr\\.claude\\start-os.cmd",
+      "runtimeArgs": [],
+      "port": 3000
+    }
+  ]
+}
