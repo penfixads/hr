@@ -89,6 +89,28 @@ export async function getAttendanceLogsForEmployee(email: string, since: Date, u
   return (data as AttendanceLogRow[]) ?? []
 }
 
+// Admin, all employees at once: same RLS policy as getAttendanceLogsForEmployee, just
+// batched with .in() instead of one request per employee — used by the all-employees
+// attendance listing (app/admin/attendance/page.tsx), also Admin-gated by middleware.ts.
+export async function getAttendanceLogsForEmployees(emails: string[], since: Date, until: Date): Promise<Record<string, AttendanceLogRow[]>> {
+  if (emails.length === 0) return {}
+  const supabase = await createOsServerClient()
+  const { data } = await supabase
+    .from('attendance_logs')
+    .select(`${SELECT_COLUMNS}, user_email`)
+    .in('user_email', emails)
+    .gte('created_at', since.toISOString())
+    .lte('created_at', until.toISOString())
+    .order('created_at', { ascending: true })
+
+  const byEmail: Record<string, AttendanceLogRow[]> = {}
+  for (const row of (data as (AttendanceLogRow & { user_email: string })[]) ?? []) {
+    const { user_email, ...rest } = row
+    ;(byEmail[user_email] ??= []).push(rest)
+  }
+  return byEmail
+}
+
 // Groups punches by office-local calendar day, most recent first — ported from
 // attendance/app/my-logs/MyLogsClient.tsx's grouping logic.
 export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
