@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import AttendancePunchCard from '@/components/AttendancePunchCard'
-import type { PayPeriodAttendanceSummary } from '@/lib/attendance'
+import type { PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
 
 const MAROON = '#4A0000'
 

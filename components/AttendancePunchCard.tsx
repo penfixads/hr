@@ -1,4 +1,4 @@
-import { PUNCH_SEQUENCE, PUNCH_LABELS, type PayPeriodAttendanceSummary } from '@/lib/attendance'
+import { PUNCH_SEQUENCE, PUNCH_LABELS, type PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
 
 const MAROON = '#4A0000'
 

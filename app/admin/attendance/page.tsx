@@ -7,6 +7,11 @@ import { getCurrentPayPeriod } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
 import AttendanceListClient from './AttendanceListClient'
 
+// No dynamic route segment (unlike app/admin/employee/[id]), so without this Next
+// would try to statically prerender the page at build time — running the employees
+// query with no request/session context instead of per-visitor.
+export const dynamic = 'force-dynamic'
+
 type Employee = { id: string; full_name: string; email: string; employment_status: string; team: string }
 
 export default async function AdminAttendancePage() {
