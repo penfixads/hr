@@ -21,6 +21,12 @@ export async function middleware(request: NextRequest) {
 
   const cookieDomain = getCookieDomain(request.headers.get('host'))
 
+  // TEMP DIAGNOSTIC — remove before merging. Confirms what this deployed build's
+  // Edge Middleware actually sees for the OS Supabase env vars, without logging the
+  // secret values themselves.
+  console.log('[diag] OS_SUPABASE_URL len=', (process.env.NEXT_PUBLIC_OS_SUPABASE_URL ?? '').length,
+    'ANON_KEY len=', (process.env.NEXT_PUBLIC_OS_SUPABASE_ANON_KEY ?? '').length)
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_OS_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_OS_SUPABASE_ANON_KEY!,
