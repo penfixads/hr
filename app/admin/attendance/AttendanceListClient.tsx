@@ -41,7 +41,7 @@ export default function AttendanceListClient({ entries }: { entries: Entry[] }) 
                   <span className="text-xs text-gray-400 transition-transform group-open:rotate-180">▾</span>
                 </div>
               </summary>
-              <AttendancePunchCard attendance={attendance} />
+              <AttendancePunchCard attendance={attendance} isAdmin />
             </details>
           ))}
         </div>

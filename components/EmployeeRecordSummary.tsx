@@ -63,6 +63,7 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
         <AttendancePunchCard
           attendance={attendance}
           leadingStat={{ label: 'Upcoming Payday', value: formatOfficeDate(nextPayday) }}
+          isAdmin={mode === 'admin'}
         />
       </Card>
 

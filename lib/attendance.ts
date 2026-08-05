@@ -1,7 +1,7 @@
 import { cookies, headers } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { getCookieDomain } from '@/lib/cookie-domain'
-import type { AttendanceLogRow } from '@/lib/attendance-shared'
+import { evaluatePunchLateness, type AttendanceLogRow, type PunchType } from '@/lib/attendance-shared'
 
 // Re-exported so existing server-side importers (app/my-records/page.tsx,
 // app/admin/employee/[id]/page.tsx, components/EmployeeRecordSummary.tsx) can keep
@@ -30,7 +30,7 @@ async function createOsServerClient() {
   )
 }
 
-const SELECT_COLUMNS = 'id, punch_type, is_flagged, flag_reason, place_name, created_at'
+const SELECT_COLUMNS = 'id, punch_type, is_flagged, flag_reason, place_name, created_at, edited_by'
 
 // Self-service: resolves the caller's own email from the session — never takes an email
 // param, so a logged-in employee can only ever fetch their own punches.
@@ -84,4 +84,42 @@ export async function getAttendanceLogsForEmployees(emails: string[], since: Dat
     ;(byEmail[user_email] ??= []).push(rest)
   }
   return byEmail
+}
+
+// Admin write: corrects a duplicate/mis-tagged punch (wrong step, wrong time) instead of
+// deleting it outright. Relies on the admin_update_attendance_logs RLS policy
+// (penfixads-OS/supabase/migrations — see attendance/supabase/migrations/052_attendance_admin_edit_delete.sql,
+// must be copied/renumbered and run there per that file's own instructions) — the cookie-scoped
+// client below carries the admin's own session, RLS is what actually authorizes the write.
+// Callers (app/api/attendance-log/route.ts) must still call getAdminSession() first: RLS
+// stops a non-admin's write, but the route should 401 before even attempting it.
+export async function updateAttendanceLog(
+  id: string,
+  punchType: PunchType,
+  createdAtIso: string,
+  editedBy: string
+): Promise<{ error: string | null }> {
+  const supabase = await createOsServerClient()
+  const { isFlagged, reason } = evaluatePunchLateness(punchType, createdAtIso)
+  const { error } = await supabase
+    .from('attendance_logs')
+    .update({
+      punch_type: punchType,
+      created_at: createdAtIso,
+      is_flagged: isFlagged,
+      flag_reason: reason,
+      edited_by: editedBy,
+      edited_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+  return { error: error?.message ?? null }
+}
+
+// Admin write: removes a duplicate punch outright. Relies on admin_delete_attendance_logs
+// RLS (same migration as updateAttendanceLog above) — no soft-delete/undo, so the caller
+// (components/AttendancePunchRowActions.tsx) confirms with the admin before calling this.
+export async function deleteAttendanceLog(id: string): Promise<{ error: string | null }> {
+  const supabase = await createOsServerClient()
+  const { error } = await supabase.from('attendance_logs').delete().eq('id', id)
+  return { error: error?.message ?? null }
 }
