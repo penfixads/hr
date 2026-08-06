@@ -86,7 +86,7 @@ export default function BossRatingEditor({ employeeId, team, skillsSelfRating, i
           <h3 className="font-bold text-base" style={{ color: '#4A0000' }}>Skills Assessment</h3>
           <div className="flex gap-4 text-xs text-gray-500">
             <span className="flex items-center gap-1"><span style={{ color: '#C9A84C' }}>★</span> Self</span>
-            <span className="flex items-center gap-1"><span style={{ color: '#4A0000' }}>★</span> Boss Allen</span>
+            <span className="flex items-center gap-1"><span style={{ color: '#4A0000' }}>★</span> Management</span>
             <span className="flex items-center gap-1 font-semibold">= Average</span>
           </div>
         </div>
@@ -118,7 +118,7 @@ export default function BossRatingEditor({ employeeId, team, skillsSelfRating, i
                     <tr className="text-xs text-gray-500 border-b">
                       <th className="text-left py-2 pr-4 font-medium">Skill</th>
                       <th className="text-center py-2 px-3 font-medium w-40">Self Rating</th>
-                      <th className="text-center py-2 px-3 font-medium w-40">Boss Allen</th>
+                      <th className="text-center py-2 px-3 font-medium w-40">Management</th>
                       <th className="text-center py-2 px-3 font-medium w-24">Average</th>
                     </tr>
                   </thead>
@@ -173,7 +173,7 @@ export default function BossRatingEditor({ employeeId, team, skillsSelfRating, i
         <button onClick={handleSave} disabled={saving}
           className="px-8 py-3 rounded-lg font-semibold text-white transition hover:opacity-90 disabled:opacity-60 shadow"
           style={{ backgroundColor: '#4A0000' }}>
-          {saving ? 'Saving...' : '💾 Save Boss Allen\'s Ratings'}
+          {saving ? 'Saving...' : '💾 Save Management\'s Ratings'}
         </button>
       </div>
     </>
