@@ -170,7 +170,7 @@ export default function EmployeeEditForm({ employeeId, initial }: Props) {
         <button onClick={() => router.push('/my-records')}
           className="px-6 py-2 border-2 rounded-lg font-semibold text-sm transition-colors"
           style={{ borderColor: '#4A0000', color: '#4A0000' }}>
-          Back to My Records
+          Back to MyHR
         </button>
         <button onClick={handleSave} disabled={saving}
           className="px-8 py-2 rounded-lg font-semibold text-sm text-white transition-colors hover:opacity-90 disabled:opacity-60"

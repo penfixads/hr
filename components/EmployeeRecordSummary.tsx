@@ -1,15 +1,18 @@
 import { fifteenPointBand } from '@/lib/fifteenPoint'
 import { formatOfficeDate, type PayPeriod } from '@/lib/payday'
-import { PUNCH_SEQUENCE, PUNCH_LABELS, type PayPeriodAttendanceSummary } from '@/lib/attendance'
+import type { PayPeriodAttendanceSummary } from '@/lib/attendance'
 import type { EmployeeRecords } from '@/lib/employee-records'
 import type { LeaveBalance } from '@/lib/leave'
 import RequestApprovalActions from '@/components/RequestApprovalActions'
+import AttendancePunchCard from '@/components/AttendancePunchCard'
 
 const MAROON = '#4A0000'
 
 type Props = {
   mode: 'self' | 'admin'
-  employee: { full_name: string; employment_status: string | null }
+  // email is optional since the self-service caller (app/my-records/page.tsx) doesn't need
+  // it — AttendancePunchCard's "Add missing punch" control only renders when mode="admin".
+  employee: { full_name: string; employment_status: string | null; email?: string }
   records: EmployeeRecords
   leaveBalances: Record<'Sick Leave' | 'Vacation Leave', LeaveBalance>
   payPeriod: PayPeriod
@@ -59,62 +62,12 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
     <>
       {/* Attendance */}
       <Card title={`Attendance — ${payPeriod.label}`}>
-        <div className="flex flex-wrap gap-8 mb-4">
-          <div>
-            <div className="text-xs text-gray-500">Upcoming Payday</div>
-            <div className="text-lg font-bold" style={{ color: MAROON }}>{formatOfficeDate(nextPayday)}</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-500">Complete Days</div>
-            <div className="text-lg font-bold" style={{ color: MAROON }}>{attendance.completeDays}</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-500">Incomplete Days</div>
-            <div className="text-lg font-bold" style={{ color: attendance.incompleteDays > 0 ? '#b91c1c' : MAROON }}>{attendance.incompleteDays}</div>
-          </div>
-          <div>
-            <div className="text-xs text-gray-500">Late/Flagged Punches</div>
-            <div className="text-lg font-bold" style={{ color: attendance.lateCount > 0 ? '#b91c1c' : MAROON }}>{attendance.lateCount}</div>
-          </div>
-        </div>
-
-        {attendance.dayGroups.length === 0 ? (
-          <EmptyRow>No punches recorded yet this pay period.</EmptyRow>
-        ) : (
-          <div className="flex flex-col gap-3">
-            {attendance.dayGroups.map(day => {
-              const missing = PUNCH_SEQUENCE.filter(step => !day.steps[step])
-              return (
-                <div key={day.dateKey} className="border border-gray-100 rounded-lg p-3">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm font-semibold text-gray-700">{day.dateKey}</p>
-                    {missing.length > 0 && (
-                      <p className="text-xs font-medium text-red-700">Missing {missing.map(s => PUNCH_LABELS[s]).join(', ')}</p>
-                    )}
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {PUNCH_SEQUENCE.map(step => {
-                      const row = day.steps[step]
-                      return (
-                        <div key={step} className="border border-gray-100 rounded-lg p-2">
-                          <p className="text-xs text-gray-500">{PUNCH_LABELS[step]}</p>
-                          {row ? (
-                            <>
-                              <p className="text-sm font-medium">
-                                {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
-                              </p>
-                              {row.is_flagged && <p className="text-xs text-amber-600">⚠ {row.flag_reason}</p>}
-                            </>
-                          ) : <p className="text-sm text-gray-300">Missed</p>}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        )}
+        <AttendancePunchCard
+          attendance={attendance}
+          leadingStat={{ label: 'Upcoming Payday', value: formatOfficeDate(nextPayday) }}
+          isAdmin={mode === 'admin'}
+          userEmail={employee.email}
+        />
       </Card>
 
       {/* Leave */}

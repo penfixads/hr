@@ -11,12 +11,13 @@ type MenuItem = {
 }
 
 const MY_RECORDS: MenuItem[] = [
-  { href: '/my-records', icon: '📋', title: 'My Records', description: 'View your attendance, requests, and evaluation history.' },
+  { href: '/my-records', icon: '📋', title: 'MyHR', description: 'View your attendance, requests, and evaluation history.' },
 ]
 
 const ADMIN_DASHBOARD: MenuItem[] = [
   { href: '/admin', icon: '🛠️', title: 'Admin Dashboard', description: 'Manage employees, records, and requests.' },
   { href: '/admin/assess', icon: '⭐', title: 'Skills Assessment', description: 'Rate employee skills, one at a time, for raise consideration.' },
+  { href: '/admin/attendance', icon: '🕒', title: 'Attendance', description: 'View punch records for every employee this pay period.' },
 ]
 
 const FORMS: MenuItem[] = [
@@ -82,7 +83,7 @@ export default async function Home() {
             <p className="text-gray-600 text-lg">Pick what you&apos;d like to do.</p>
           </div>
 
-          <SectionLabel>{employee?.isAdmin ? 'Admin' : 'My Records'}</SectionLabel>
+          <SectionLabel>{employee?.isAdmin ? 'Admin' : 'MyHR'}</SectionLabel>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
             {myRecords.map(item => <MenuCard key={item.href} item={item} />)}
           </div>

@@ -1,4 +1,5 @@
 import { toOfficeLocal, officeLocalToUTC } from './office-time'
+import { PH_HOLIDAYS } from './ph-holidays'
 
 export type PayPeriod = { start: Date; end: Date; label: string }
 
@@ -9,40 +10,114 @@ function lastDayOfMonth(year: number, month: number) {
   return new Date(Date.UTC(year, month + 1, 0)).getUTCDate()
 }
 
-// Semi-monthly pay periods: 1st-15th, and 16th-end of month, in office-local time.
-export function getCurrentPayPeriod(nowUtc: Date = new Date()): PayPeriod {
-  const local = toOfficeLocal(nowUtc)
-  const year = local.getUTCFullYear()
-  const month = local.getUTCMonth()
-  const day = local.getUTCDate()
-  const lastDay = lastDayOfMonth(year, month)
+// Plain calendar date (no time-of-day meaning) — used only for day-of-week/holiday
+// lookups and date arithmetic, kept separate from office-local wall-clock instants.
+function calDate(year: number, month: number, day: number): Date {
+  return new Date(Date.UTC(year, month, day))
+}
 
-  const startDay = day <= 15 ? 1 : 16
-  const endDay = day <= 15 ? 15 : lastDay
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getTime() + days * 24 * 60 * 60 * 1000)
+}
+
+function dateKey(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+function isHoliday(date: Date): boolean {
+  return dateKey(date) in PH_HOLIDAYS
+}
+
+// Payday shifts one calendar day earlier for each Sunday/holiday it lands on, repeating
+// until it clears both (handles a holiday falling right after a Sunday, etc).
+function adjustPayday(date: Date): Date {
+  let d = date
+  while (d.getUTCDay() === 0 || isHoliday(d)) d = addDays(d, -1)
+  return d
+}
+
+// Mid-month payday: nominally the 14th (one day before the 15th), shifted earlier off
+// a Sunday/holiday.
+function paydayA(year: number, month: number): Date {
+  return adjustPayday(calDate(year, month, 14))
+}
+
+// End-of-month payday: one day before the month's last day, shifted earlier off a
+// Sunday/holiday (e.g. the 30th in a 31-day month, the 29th in a 30-day month).
+function paydayB(year: number, month: number): Date {
+  return adjustPayday(calDate(year, month, lastDayOfMonth(year, month) - 1))
+}
+
+// Attendance cutoff: one calendar day before the (already Sunday/holiday-shifted)
+// payday — not independently re-shifted itself.
+function cutoffA(year: number, month: number): Date {
+  return addDays(paydayA(year, month), -1)
+}
+
+function cutoffB(year: number, month: number): Date {
+  return addDays(paydayB(year, month), -1)
+}
+
+type PayCycle = { start: Date; end: Date; payday: Date }
+
+// The attendance cycle currently containing `today` (an office-local calendar date).
+// Every calendar day belongs to exactly one cycle: a cycle runs from the day after the
+// previous cutoff through this cycle's own cutoff (one day before its payday) — so the
+// payday date itself is already the first day of the *next* cycle, not the last day of
+// this one.
+function getPayCycle(today: Date): PayCycle {
+  const year = today.getUTCFullYear()
+  const month = today.getUTCMonth()
+
+  const cutA = cutoffA(year, month)
+  if (today.getTime() <= cutA.getTime()) {
+    const prevMonth = month === 0 ? 11 : month - 1
+    const prevYear = month === 0 ? year - 1 : year
+    const prevCutB = cutoffB(prevYear, prevMonth)
+    return { start: addDays(prevCutB, 1), end: cutA, payday: paydayA(year, month) }
+  }
+
+  const cutB = cutoffB(year, month)
+  if (today.getTime() <= cutB.getTime()) {
+    return { start: addDays(cutA, 1), end: cutB, payday: paydayB(year, month) }
+  }
+
+  const nextMonth = month === 11 ? 0 : month + 1
+  const nextYear = month === 11 ? year + 1 : year
+  const nextCutA = cutoffA(nextYear, nextMonth)
+  return { start: addDays(cutB, 1), end: nextCutA, payday: paydayA(nextYear, nextMonth) }
+}
+
+function labelFor(start: Date, end: Date): string {
+  const startMonth = MONTH_NAMES[start.getUTCMonth()]
+  const endMonth = MONTH_NAMES[end.getUTCMonth()]
+  const sameMonth = startMonth === endMonth && start.getUTCFullYear() === end.getUTCFullYear()
+  const startPart = sameMonth ? `${startMonth} ${start.getUTCDate()}` : `${startMonth} ${start.getUTCDate()}, ${start.getUTCFullYear()}`
+  const endPart = sameMonth ? `${end.getUTCDate()}, ${end.getUTCFullYear()}` : `${endMonth} ${end.getUTCDate()}, ${end.getUTCFullYear()}`
+  return `${startPart}–${endPart}`
+}
+
+// Attendance cycle covering "day after last cutoff" through "this cycle's cutoff"
+// (one day before its payday), in office-local time. See lib/ph-holidays.ts for the
+// Sunday/holiday shift applied to paydays.
+export function getCurrentPayPeriod(nowUtc: Date = new Date()): PayPeriod {
+  const today = toOfficeLocal(nowUtc)
+  const cycle = getPayCycle(calDate(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()))
 
   return {
-    start: officeLocalToUTC(year, month, startDay),
-    end: officeLocalToUTC(year, month, endDay, 23, 59, 59, 999),
-    label: `${MONTH_NAMES[month]} ${startDay}–${endDay}, ${year}`,
+    start: officeLocalToUTC(cycle.start.getUTCFullYear(), cycle.start.getUTCMonth(), cycle.start.getUTCDate()),
+    end: officeLocalToUTC(cycle.end.getUTCFullYear(), cycle.end.getUTCMonth(), cycle.end.getUTCDate(), 23, 59, 59, 999),
+    label: labelFor(cycle.start, cycle.end),
   }
 }
 
-// Payday falls one day before each cutoff: the 14th, and the day before the last day of
-// the month (e.g. the 29th in a 30-day month). Returns the next upcoming payday from now.
+// Next upcoming payday. Note: on the payday itself, attendance has already rolled into
+// the following cycle (its cutoff is the day before), so this returns the payday after
+// today's, not today's own.
 export function getNextPayday(nowUtc: Date = new Date()): Date {
-  const local = toOfficeLocal(nowUtc)
-  const year = local.getUTCFullYear()
-  const month = local.getUTCMonth()
-  const day = local.getUTCDate()
-  const secondPayday = lastDayOfMonth(year, month) - 1
-
-  if (day <= 14) return officeLocalToUTC(year, month, 14)
-  if (day <= secondPayday) return officeLocalToUTC(year, month, secondPayday)
-
-  // Past both paydays this month — roll into next month's 14th.
-  const nextMonth = month === 11 ? 0 : month + 1
-  const nextYear = month === 11 ? year + 1 : year
-  return officeLocalToUTC(nextYear, nextMonth, 14)
+  const today = toOfficeLocal(nowUtc)
+  const cycle = getPayCycle(calDate(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()))
+  return officeLocalToUTC(cycle.payday.getUTCFullYear(), cycle.payday.getUTCMonth(), cycle.payday.getUTCDate())
 }
 
 // Formats a UTC instant back into its office-local calendar day — shifts to office-local

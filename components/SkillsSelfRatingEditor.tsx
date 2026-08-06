@@ -1,0 +1,86 @@
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase'
+import StarRating from './StarRating'
+import { CREATIVE_SKILLS, PRODUCTION_SKILLS } from '@/lib/skills'
+
+interface Props {
+  employeeId: string
+  team: string
+  initial: Record<string, number>
+}
+
+export default function SkillsSelfRatingEditor({ employeeId, team, initial }: Props) {
+  const router = useRouter()
+  const skills = team === 'creative' ? CREATIVE_SKILLS : PRODUCTION_SKILLS
+  const [ratings, setRatings] = useState<Record<string, number>>(initial)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [saved, setSaved] = useState(false)
+
+  const setRating = (skill: string, val: number) =>
+    setRatings(prev => ({ ...prev, [skill]: val }))
+
+  const handleSave = async () => {
+    setSaving(true)
+    setError('')
+    setSaved(false)
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error: sbErr } = await (supabase as any)
+        .from('employees')
+        .update({ skills_self_rating: ratings })
+        .eq('id', employeeId)
+      if (sbErr) throw sbErr
+      setSaved(true)
+      router.refresh()
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to save changes.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-xl border p-5 space-y-6">
+      <div>
+        <h3 className="text-lg font-bold mb-1" style={{ color: '#4A0000' }}>Skills Self-Assessment</h3>
+        <p className="text-sm text-gray-500 mb-4">
+          Update your ratings as your skills improve: 1 = No knowledge · 2 = Basic · 3 = Intermediate · 4 = Advanced · 5 = Expert
+        </p>
+        {Object.entries(skills).map(([category, skillList]) => (
+          <div key={category} className="mb-6">
+            <h4 className="font-semibold text-sm mb-3 pb-2 border-b-2" style={{ color: '#4A0000', borderColor: '#C9A84C' }}>
+              {category}
+            </h4>
+            <div className="space-y-3">
+              {(skillList as string[]).map((skill) => (
+                <div key={skill} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg">
+                  <span className="text-sm text-gray-700 flex-1">{skill}</span>
+                  <StarRating value={ratings[skill] || 0} onChange={val => setRating(skill, val)} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {error && (
+        <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
+      )}
+      {saved && !error && (
+        <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">Skills ratings saved.</div>
+      )}
+
+      <div className="flex justify-end pt-2 border-t border-gray-200">
+        <button onClick={handleSave} disabled={saving}
+          className="px-8 py-2 rounded-lg font-semibold text-sm text-white transition-colors hover:opacity-90 disabled:opacity-60"
+          style={{ backgroundColor: '#C9A84C' }}>
+          {saving ? 'Saving...' : '✓ Save Skills Ratings'}
+        </button>
+      </div>
+    </div>
+  )
+}

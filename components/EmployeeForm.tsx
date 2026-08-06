@@ -140,7 +140,7 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
         <div className="text-6xl mb-6">✅</div>
         <h2 className="text-2xl font-bold mb-3" style={{ color: '#4A0000' }}>Submitted Successfully!</h2>
         <p className="text-gray-600 text-lg max-w-md">
-          Thank you! Your profile has been submitted successfully. Boss Allen will review your assessment soon.
+          Thank you! Your profile has been submitted successfully. Management will review your assessment soon.
         </p>
       </div>
     )

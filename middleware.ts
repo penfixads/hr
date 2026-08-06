@@ -9,6 +9,10 @@ import { getCookieDomain } from '@/lib/cookie-domain'
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
+  // Also the one route that keeps rendering even if NEXT_PUBLIC_OS_SUPABASE_* is
+  // misconfigured for this deployment target (e.g. an env-var gap on a given
+  // Preview/staging build) — every other path below constructs a Supabase client
+  // from those build-time-inlined values and throws immediately if they're bad.
   if (pathname.startsWith('/login')) {
     return NextResponse.next()
   }

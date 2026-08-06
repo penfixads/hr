@@ -118,7 +118,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
 
         <EmployeeRecordSummary
           mode="admin"
-          employee={{ full_name: employee.full_name, employment_status: employee.employment_status }}
+          employee={{ full_name: employee.full_name, employment_status: employee.employment_status, email: employee.email }}
           records={records}
           leaveBalances={leaveBalances}
           payPeriod={payPeriod}
