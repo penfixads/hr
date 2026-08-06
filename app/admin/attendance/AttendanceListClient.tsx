@@ -8,7 +8,7 @@ import type { PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
 const MAROON = '#4A0000'
 
 type Entry = {
-  employee: { id: string; full_name: string; employment_status: string; team: string }
+  employee: { id: string; full_name: string; email: string; employment_status: string; team: string }
   attendance: PayPeriodAttendanceSummary
 }
 
@@ -41,7 +41,7 @@ export default function AttendanceListClient({ entries }: { entries: Entry[] }) 
                   <span className="text-xs text-gray-400 transition-transform group-open:rotate-180">▾</span>
                 </div>
               </summary>
-              <AttendancePunchCard attendance={attendance} isAdmin />
+              <AttendancePunchCard attendance={attendance} isAdmin userEmail={employee.email} />
             </details>
           ))}
         </div>

@@ -10,7 +10,9 @@ const MAROON = '#4A0000'
 
 type Props = {
   mode: 'self' | 'admin'
-  employee: { full_name: string; employment_status: string | null }
+  // email is optional since the self-service caller (app/my-records/page.tsx) doesn't need
+  // it — AttendancePunchCard's "Add missing punch" control only renders when mode="admin".
+  employee: { full_name: string; employment_status: string | null; email?: string }
   records: EmployeeRecords
   leaveBalances: Record<'Sick Leave' | 'Vacation Leave', LeaveBalance>
   payPeriod: PayPeriod
@@ -64,6 +66,7 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
           attendance={attendance}
           leadingStat={{ label: 'Upcoming Payday', value: formatOfficeDate(nextPayday) }}
           isAdmin={mode === 'admin'}
+          userEmail={employee.email}
         />
       </Card>
 

@@ -1,20 +1,25 @@
 import { PUNCH_SEQUENCE, PUNCH_LABELS, formatMinutes, type PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
 import AttendancePunchRowActions from '@/components/AttendancePunchRowActions'
+import AttendancePunchAddAction from '@/components/AttendancePunchAddAction'
 
 const MAROON = '#4A0000'
 
 type Props = {
   attendance: PayPeriodAttendanceSummary
   leadingStat?: { label: string; value: React.ReactNode }
-  // Shows per-punch Edit/Delete controls for correcting duplicate/mis-tagged punches —
-  // only ever passed true from admin-gated surfaces (app/admin/attendance,
-  // app/admin/employee/[id] via EmployeeRecordSummary mode="admin"). The API route this
-  // hits (app/api/attendance-log/route.ts) re-checks Admin itself, so this flag is a UI
-  // convenience, not the actual authorization boundary.
+  // Shows per-punch Edit/Delete/Add controls for correcting duplicate/mis-tagged punches or
+  // filling in a missing one — only ever passed true from admin-gated surfaces
+  // (app/admin/attendance, app/admin/employee/[id] via EmployeeRecordSummary mode="admin").
+  // The API route this hits (app/api/attendance-log/route.ts) re-checks Admin itself, so this
+  // flag is a UI convenience, not the actual authorization boundary.
   isAdmin?: boolean
+  // Whose punches these are — required for the "Add missing punch" action (it inserts on
+  // this employee's behalf, distinct from the admin's own session email). Not needed unless
+  // isAdmin is also true.
+  userEmail?: string
 }
 
-export default function AttendancePunchCard({ attendance, leadingStat, isAdmin }: Props) {
+export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, userEmail }: Props) {
   return (
     <>
       <div className="flex flex-wrap gap-8 mb-4">
@@ -86,7 +91,14 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin }
                             {row.edited_by && <p className="text-xs text-gray-400">Edited by {row.edited_by}</p>}
                             {isAdmin && <AttendancePunchRowActions id={row.id} punchType={step} createdAtIso={row.created_at} />}
                           </>
-                        ) : <p className="text-sm text-gray-300">Missed</p>}
+                        ) : (
+                          <>
+                            <p className="text-sm text-gray-300">Missed</p>
+                            {isAdmin && userEmail && (
+                              <AttendancePunchAddAction userEmail={userEmail} punchType={step} dateKey={day.dateKey} />
+                            )}
+                          </>
+                        )}
                       </div>
                     )
                   })}

@@ -123,3 +123,31 @@ export async function deleteAttendanceLog(id: string): Promise<{ error: string |
   const { error } = await supabase.from('attendance_logs').delete().eq('id', id)
   return { error: error?.message ?? null }
 }
+
+// Admin write: manually fills in a MISSING punch (e.g. an employee forgot to log out) on
+// another employee's behalf. Relies on the admin_insert_attendance_logs RLS policy
+// (attendance/supabase/migrations/053_admin_insert_attendance.sql, must be copied/renumbered
+// and run against penfixads-OS per that file's own instructions) — own_insert_attendance_logs
+// from 049_attendance.sql only covers self-punches (user_email = auth.email()), which doesn't
+// apply here since the caller is an Admin filling in for someone else.
+export async function createAttendanceLog(
+  userEmail: string,
+  punchType: PunchType,
+  createdAtIso: string,
+  recordedBy: string
+): Promise<{ error: string | null }> {
+  const supabase = await createOsServerClient()
+  const { isFlagged, reason } = evaluatePunchLateness(punchType, createdAtIso)
+  const { error } = await supabase
+    .from('attendance_logs')
+    .insert({
+      user_email: userEmail,
+      punch_type: punchType,
+      created_at: createdAtIso,
+      is_flagged: isFlagged,
+      flag_reason: reason,
+      recorded_by: recordedBy,
+      note: 'Manually added by Admin — punch was missing.',
+    })
+  return { error: error?.message ?? null }
+}
