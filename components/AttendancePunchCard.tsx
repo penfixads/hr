@@ -1,6 +1,7 @@
 import { PUNCH_SEQUENCE, PUNCH_LABELS, formatMinutes, type PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
 import AttendancePunchRowActions from '@/components/AttendancePunchRowActions'
 import AttendancePunchAddAction from '@/components/AttendancePunchAddAction'
+import AttendanceAddPunchButton from '@/components/AttendanceAddPunchButton'
 
 const MAROON = '#4A0000'
 
@@ -62,6 +63,8 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, 
         Undertime hours here are derived from early logouts only — separate from any approved undertime request on file.
       </p>
 
+      {isAdmin && userEmail && <AttendanceAddPunchButton userEmail={userEmail} />}
+
       {attendance.dayGroups.length === 0 ? (
         <p className="text-sm text-gray-400">No punches recorded yet this pay period.</p>
       ) : (
@@ -79,6 +82,7 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {PUNCH_SEQUENCE.map(step => {
                     const row = day.steps[step]
+                    const evaluation = day.evaluations[step]
                     return (
                       <div key={step} className="border border-gray-100 rounded-lg p-2">
                         <p className="text-xs text-gray-500">{PUNCH_LABELS[step]}</p>
@@ -87,7 +91,23 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, 
                             <p className="text-sm font-medium">
                               {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
                             </p>
-                            {row.is_flagged && <p className="text-xs text-amber-600">⚠ {row.flag_reason}</p>}
+                            {row.place_name && <p className="text-xs text-gray-400">{row.place_name}</p>}
+                            {row.latitude !== null && row.longitude !== null && (
+                              <a
+                                href={`https://www.openstreetmap.org/?mlat=${row.latitude}&mlon=${row.longitude}#map=17/${row.latitude}/${row.longitude}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs underline"
+                                style={{ color: MAROON }}
+                              >
+                                View map
+                              </a>
+                            )}
+                            {evaluation?.reason && (
+                              <p className={`text-xs ${evaluation.isLate ? 'text-amber-600' : 'text-orange-600'}`}>
+                                ⚠ {evaluation.reason}
+                              </p>
+                            )}
                             {row.edited_by && <p className="text-xs text-gray-400">Edited by {row.edited_by}</p>}
                             {isAdmin && <AttendancePunchRowActions id={row.id} punchType={step} createdAtIso={row.created_at} />}
                           </>

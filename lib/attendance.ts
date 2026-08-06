@@ -30,7 +30,7 @@ async function createOsServerClient() {
   )
 }
 
-const SELECT_COLUMNS = 'id, punch_type, is_flagged, flag_reason, place_name, created_at, edited_by'
+const SELECT_COLUMNS = 'id, punch_type, is_flagged, flag_reason, place_name, latitude, longitude, created_at, edited_by'
 
 // Self-service: resolves the caller's own email from the session — never takes an email
 // param, so a logged-in employee can only ever fetch their own punches.
