@@ -17,6 +17,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Applicant screening is filled in by people OUTSIDE the company, who have no Penfix OS
+  // account and must never be given one just to apply. The unguessable invite token in the
+  // URL is the credential, validated server-side in lib/applicants-server.ts; the page
+  // itself renders a "link not found" notice for anything else, so leaving it open here
+  // exposes no data. Note this bypasses auth only for /applicant-screening/* — /admin/applicants,
+  // where submissions are actually read, stays behind the Admin gate below.
+  if (pathname.startsWith('/applicant-screening')) {
+    return NextResponse.next()
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const cookieDomain = getCookieDomain(request.headers.get('host'))
