@@ -19,6 +19,7 @@ const ADMIN_DASHBOARD: MenuItem[] = [
   { href: '/admin/assess', icon: '⭐', title: 'Skills Assessment', description: 'Rate employee skills, one at a time, for raise consideration.' },
   { href: '/admin/attendance', icon: '🕒', title: 'Attendance', description: 'View punch records for every employee this pay period.' },
   { href: '/admin/applicants', icon: '📄', title: 'Applicant Screening', description: 'Send screening links to applicants and review their biodata.' },
+  { href: '/admin/assessments', icon: '🧠', title: 'Applicant Assessment', description: 'Send the assessment exam, then review scores and essays.' },
 ]
 
 const FORMS: MenuItem[] = [

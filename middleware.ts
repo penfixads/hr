@@ -27,6 +27,14 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
+  // Same reasoning for the assessment exam, sent to applicants after screening: the invite
+  // token is the credential, validated server-side in lib/assessment-server.ts, and the
+  // page renders a "link not found" notice for anything else. Scores are never rendered
+  // here — they live behind /admin/assessments, which stays inside the Admin gate below.
+  if (pathname.startsWith('/applicant-assessment')) {
+    return NextResponse.next()
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const cookieDomain = getCookieDomain(request.headers.get('host'))
