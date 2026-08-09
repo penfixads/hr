@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { MS_PER_DAY, toDate, daysInclusive, accruedCredits } from '@/lib/leave'
+import { MS_PER_DAY, toDate, daysInclusive, accruedCredits, isLeaveEligible, leaveEligibleFrom, ELIGIBILITY_MONTHS } from '@/lib/leave'
 
 type EmployeeOption = { id: string; full_name: string; team: 'creative' | 'production'; date_joined: string | null }
 type LeaveType = 'Sick Leave' | 'Vacation Leave'
-type ExistingLeave = { employee_id: string; employee_name: string; leave_type: LeaveType; start_date: string; end_date: string; days_requested: number }
+type ExistingLeave = { employee_id: string; employee_name: string; leave_type: LeaveType; start_date: string; end_date: string; days_requested: number; filed_late: boolean }
+
+const LEAVE_COLUMNS = 'employee_id, employee_name, leave_type, start_date, end_date, days_requested, filed_late'
 
 // Rebuilds the legacy "PENFIX LEAVE FORM" (Name, Start of Leave, End of Leave, Type of
 // Leave [Sick Leave / Vacation Leave only — Emergency/Bereavement route under Vacation
@@ -48,21 +50,26 @@ export default function LeaveForm() {
   useEffect(() => {
     if (!selected) { setOwnLeaves([]); setTeamVacations([]); return }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(supabase as any).from('leave_requests').select('employee_id, employee_name, leave_type, start_date, end_date, days_requested')
+    ;(supabase as any).from('leave_requests').select(LEAVE_COLUMNS)
       .eq('employee_id', selected.id)
       .then(({ data }: { data: ExistingLeave[] | null }) => setOwnLeaves(data ?? []))
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ;(supabase as any).from('leave_requests').select('employee_id, employee_name, leave_type, start_date, end_date, days_requested')
+    ;(supabase as any).from('leave_requests').select(LEAVE_COLUMNS)
       .eq('team', selected.team).eq('leave_type', 'Vacation Leave')
       .then(({ data }: { data: ExistingLeave[] | null }) => setTeamVacations(data ?? []))
   }, [selectedId])
 
   const currentYear = new Date().getFullYear()
+  // Late-filed leave is not payable per policy, so it never consumed a credit -- excluding it
+  // here keeps this figure identical to computeLeaveBalances in lib/leave.ts, which My Records
+  // and the admin detail page both use.
   const usedThisYear = ownLeaves
-    .filter(l => l.leave_type === leaveType && toDate(l.start_date).getFullYear() === currentYear)
+    .filter(l => l.leave_type === leaveType && !l.filed_late && toDate(l.start_date).getFullYear() === currentYear)
     .reduce((sum, l) => sum + l.days_requested, 0)
   const accrued = selected ? accruedCredits(selected.date_joined) : 0
   const remaining = accrued - usedThisYear
+  const eligible = selected ? isLeaveEligible(selected.date_joined) : true
+  const eligibleFrom = selected ? leaveEligibleFrom(selected.date_joined) : null
 
   const daysRequested = startDate && endDate && endDate >= startDate ? daysInclusive(startDate, endDate) : 0
   const exceedsBalance = daysRequested > 0 && daysRequested > remaining
@@ -214,6 +221,17 @@ export default function LeaveForm() {
               <div className="text-lg font-bold" style={{ color: '#4A0000' }}>{daysRequested} day{daysRequested !== 1 ? 's' : ''}</div>
             </div>
           )}
+        </div>
+      )}
+
+      {selected && !eligible && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg text-sm">
+          {selected.full_name} is not yet eligible for <b>paid</b> leave — company policy requires{' '}
+          {ELIGIBILITY_MONTHS} months of service
+          {eligibleFrom
+            ? `, so paid leave becomes available on ${eligibleFrom.toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}`
+            : ', and no hire date is on file for this employee — ask HR to complete the record'}
+          . This request can still be filed, but the days are not payable.
         </div>
       )}
 
