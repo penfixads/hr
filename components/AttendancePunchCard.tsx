@@ -89,7 +89,14 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, 
                         {row ? (
                           <>
                             <p className="text-sm font-medium">
-                              {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit' })}
+                              {/* timeZone is required, not optional: this is a Server Component, so
+                                  toLocaleTimeString formats in the SERVER's zone -- UTC on Vercel --
+                                  and every punch rendered 8 hours early. An 08:03 login displayed as
+                                  12:03 AM while the lateness flag beside it correctly read
+                                  "punched 08:03", because evaluatePunch uses the explicit +8 helper
+                                  in lib/attendance-shared.ts. The 'en-PH' locale only picks the
+                                  12-hour format; it does not imply a timezone. */}
+                              {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' })}
                             </p>
                             {row.place_name && <p className="text-xs text-gray-400">{row.place_name}</p>}
                             {row.latitude !== null && row.longitude !== null && (

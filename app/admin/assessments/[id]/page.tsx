@@ -14,8 +14,11 @@ export const dynamic = 'force-dynamic'
 
 const MAROON = '#4A0000'
 
+// Same Server Component timezone trap as AttendancePunchCard: without an explicit timeZone
+// this formats in the server's zone (UTC on Vercel), not Manila, so timestamps render 8 hours
+// early. 'en-PH' selects the format, not the zone.
 function fmt(d: string | null) {
-  return d ? new Date(d).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short' }) : '—'
+  return d ? new Date(d).toLocaleString('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }) : '—'
 }
 
 export default async function AssessmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
