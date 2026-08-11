@@ -2,7 +2,14 @@
 
 import { useState } from 'react'
 import StarRating from '@/components/StarRating'
-import { CREATIVE_SKILLS, PRODUCTION_SKILLS } from '@/lib/skills'
+import {
+  getSkillsForTeam,
+  isBonusCategory,
+  computeSkillsScore,
+  raiseLabel,
+  BONUS_CATEGORY_NOTE,
+  BONUS_MAX_UPLIFT,
+} from '@/lib/skills'
 
 type Props = {
   employeeId: string
@@ -17,36 +24,17 @@ function scoreColor(score: number) {
   return '#dc2626'
 }
 
-function raiseLabel(score: number) {
-  if (score >= 4.5) return { label: 'Excellent', note: 'High raise consideration', color: '#16a34a' }
-  if (score >= 3.5) return { label: 'Good', note: 'Standard raise consideration', color: '#2563eb' }
-  if (score >= 2.5) return { label: 'Average', note: 'Minimal raise consideration', color: '#ca8a04' }
-  return { label: 'Needs Improvement', note: 'No raise recommended', color: '#dc2626' }
-}
-
 export default function BossRatingEditor({ employeeId, team, skillsSelfRating, initialBossRatings }: Props) {
   const [bossRatings, setBossRatings] = useState<Record<string, number>>(initialBossRatings ?? {})
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
 
-  const skills = team === 'creative' ? CREATIVE_SKILLS : PRODUCTION_SKILLS
+  const skills = getSkillsForTeam(team)
   const self = skillsSelfRating ?? {}
 
-  const allSkillsForAvg = Object.values(skills).flat() as string[]
-  const overallAvg = (() => {
-    let total = 0, count = 0
-    allSkillsForAvg.forEach(skill => {
-      const s = self[skill] ?? 0
-      const b = bossRatings[skill] ?? 0
-      if (s > 0 || b > 0) {
-        const avg = (s > 0 && b > 0) ? (s + b) / 2 : s || b
-        total += avg; count++
-      }
-    })
-    return count > 0 ? total / count : 0
-  })()
-
+  const score = computeSkillsScore(team, self, bossRatings)
+  const overallAvg = score.overall
   const raise = raiseLabel(overallAvg)
 
   const handleSave = async () => {
@@ -71,6 +59,17 @@ export default function BossRatingEditor({ employeeId, team, skillsSelfRating, i
               <div className="text-xs text-gray-500">Overall Score</div>
               <div className="text-2xl font-bold" style={{ color: scoreColor(overallAvg) }}>{overallAvg.toFixed(2)}</div>
             </div>
+            {/* Only worth breaking the number apart when a bonus category actually applies --
+                for the production team there is none, and "Core 3.80 + 0.00" is just noise. */}
+            {score.bonusRatedCount > 0 && (
+              <div className="border-l pl-3">
+                <div className="text-xs text-gray-500">Core</div>
+                <div className="font-bold text-sm" style={{ color: scoreColor(score.core) }}>{score.core.toFixed(2)}</div>
+                <div className="text-xs text-gray-400">
+                  + {score.uplift.toFixed(2)} bonus
+                </div>
+              </div>
+            )}
             <div className="border-l pl-3">
               <div className="text-xs text-gray-500">December Raise</div>
               <div className="font-bold text-sm" style={{ color: raise.color }}>{raise.label}</div>
@@ -101,16 +100,29 @@ export default function BossRatingEditor({ employeeId, team, skillsSelfRating, i
             }, 0) / catRated.length
             : 0
 
+          const isBonus = isBonusCategory(team, category)
+
           return (
             <div key={category} className="mb-8">
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="font-semibold text-sm" style={{ color: '#4A0000' }}>{category}</h4>
+              <div className={`flex items-center justify-between ${isBonus ? 'mb-1' : 'mb-3'}`}>
+                <h4 className="font-semibold text-sm flex items-center gap-2" style={{ color: '#4A0000' }}>
+                  {category}
+                  {isBonus && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium"
+                      style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                      Bonus · max +{BONUS_MAX_UPLIFT.toFixed(2)}
+                    </span>
+                  )}
+                </h4>
                 {catAvg > 0 && (
-                  <span className="text-sm font-bold" style={{ color: scoreColor(catAvg) }}>
-                    Category Avg: {catAvg.toFixed(1)}
+                  // Greyed for bonus: the number is informative, but it is not part of what
+                  // the employee is graded against, so it should not read like a verdict.
+                  <span className="text-sm font-bold" style={{ color: isBonus ? '#6b7280' : scoreColor(catAvg) }}>
+                    {isBonus ? 'Bonus Avg' : 'Category Avg'}: {catAvg.toFixed(1)}
                   </span>
                 )}
               </div>
+              {isBonus && <p className="text-xs text-gray-500 mb-3">{BONUS_CATEGORY_NOTE}</p>}
 
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">

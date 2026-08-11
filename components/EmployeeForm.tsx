@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import StarRating from './StarRating'
-import type { SkillsMap } from '@/lib/skills'
+import { isBonusCategory, BONUS_CATEGORY_NOTE, type SkillsMap } from '@/lib/skills'
 
 interface EmployeeFormProps {
   team: 'creative' | 'production'
@@ -323,9 +323,14 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
           </p>
           {Object.entries(skills).map(([category, skillList]) => (
             <div key={category} className="mb-8">
-              <h4 className="font-semibold text-base mb-3 pb-2 border-b-2" style={{ color: '#4A0000', borderColor: '#C9A84C' }}>
+              <h4 className={`font-semibold text-base pb-2 border-b-2 ${isBonusCategory(team, category) ? 'mb-1' : 'mb-3'}`} style={{ color: '#4A0000', borderColor: '#C9A84C' }}>
                 {category}
               </h4>
+              {/* Same reassurance as the self-rating editor — a new hire meeting these seven
+                  machine rows on day one should know they are optional, not a shortfall. */}
+              {isBonusCategory(team, category) && (
+                <p className="text-xs text-gray-500 mb-3">{BONUS_CATEGORY_NOTE}</p>
+              )}
               <div className="space-y-4">
                 {(skillList as string[]).map((skill) => (
                   <div key={skill} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-white rounded-lg border border-gray-100">

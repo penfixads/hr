@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import Link from 'next/link'
+import { computeSkillsScore, raiseLabel } from '@/lib/skills'
 
 type Employee = {
   id: string
@@ -21,21 +22,11 @@ type Employee = {
 type SortKey = 'full_name' | 'team' | 'submitted_at' | 'avg_score'
 type SortDir = 'asc' | 'desc'
 
+// Delegates to lib/skills.ts so this column agrees with the assessment page. It used to walk
+// the stored rating keys and take a flat mean of everything it found, which both ignored the
+// bonus/core split and counted any stale key left in the JSON.
 function avgScore(emp: Employee) {
-  const self = emp.skills_self_rating ?? {}
-  const boss = emp.skills_boss_rating ?? {}
-  const allSkills = new Set([...Object.keys(self), ...Object.keys(boss)])
-  if (allSkills.size === 0) return 0
-  let total = 0, count = 0
-  allSkills.forEach(skill => {
-    const s = self[skill] ?? 0
-    const b = boss[skill] ?? 0
-    if (s > 0 || b > 0) {
-      const avg = (s > 0 && b > 0) ? (s + b) / 2 : s || b
-      total += avg; count++
-    }
-  })
-  return count > 0 ? total / count : 0
+  return computeSkillsScore(emp.team, emp.skills_self_rating, emp.skills_boss_rating).overall
 }
 
 function scoreColor(score: number) {
@@ -43,13 +34,6 @@ function scoreColor(score: number) {
   if (score >= 3) return '#ca8a04'
   if (score >= 2) return '#dc2626'
   return '#6b7280'
-}
-
-function raiseLabel(score: number) {
-  if (score >= 4.5) return { label: 'Excellent', note: 'High raise consideration', color: '#16a34a' }
-  if (score >= 3.5) return { label: 'Good', note: 'Standard raise consideration', color: '#2563eb' }
-  if (score >= 2.5) return { label: 'Average', note: 'Minimal raise consideration', color: '#ca8a04' }
-  return { label: 'Needs Improvement', note: 'No raise recommended', color: '#dc2626' }
 }
 
 export default function AdminPage() {

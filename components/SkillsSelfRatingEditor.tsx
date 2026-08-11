@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import StarRating from './StarRating'
-import { CREATIVE_SKILLS, PRODUCTION_SKILLS } from '@/lib/skills'
+import { getSkillsForTeam, isBonusCategory, BONUS_CATEGORY_NOTE } from '@/lib/skills'
 
 interface Props {
   employeeId: string
@@ -14,7 +14,7 @@ interface Props {
 
 export default function SkillsSelfRatingEditor({ employeeId, team, initial }: Props) {
   const router = useRouter()
-  const skills = team === 'creative' ? CREATIVE_SKILLS : PRODUCTION_SKILLS
+  const skills = getSkillsForTeam(team)
   const [ratings, setRatings] = useState<Record<string, number>>(initial)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
@@ -52,9 +52,14 @@ export default function SkillsSelfRatingEditor({ employeeId, team, initial }: Pr
         </p>
         {Object.entries(skills).map(([category, skillList]) => (
           <div key={category} className="mb-6">
-            <h4 className="font-semibold text-sm mb-3 pb-2 border-b-2" style={{ color: '#4A0000', borderColor: '#C9A84C' }}>
+            <h4 className={`font-semibold text-sm pb-2 border-b-2 ${isBonusCategory(team, category) ? 'mb-1' : 'mb-3'}`} style={{ color: '#4A0000', borderColor: '#C9A84C' }}>
               {category}
             </h4>
+            {/* Without this note a GA rating themselves "1 - No knowledge" on seven machine
+                rows reasonably assumes they are failing the assessment. They are not. */}
+            {isBonusCategory(team, category) && (
+              <p className="text-xs text-gray-500 mb-3">{BONUS_CATEGORY_NOTE}</p>
+            )}
             <div className="space-y-3">
               {(skillList as string[]).map((skill) => (
                 <div key={skill} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg">
