@@ -69,17 +69,24 @@ function getPayCycle(today: Date): PayCycle {
   const year = today.getUTCFullYear()
   const month = today.getUTCMonth()
 
+  // Boundary is the payday itself, not the cutoff (payday - 1): the period being paid
+  // out needs to stay "current" through its own payday, so whoever is running payroll
+  // that day can still see the attendance they're paying for. It only rolls into the
+  // next cycle starting the day after payday. cutA/cutB (the actual last-attendance-day)
+  // are unchanged — only this display/query rollover point shifts by one day.
   const cutA = cutoffA(year, month)
-  if (today.getTime() <= cutA.getTime()) {
+  const payA = paydayA(year, month)
+  if (today.getTime() <= payA.getTime()) {
     const prevMonth = month === 0 ? 11 : month - 1
     const prevYear = month === 0 ? year - 1 : year
     const prevCutB = cutoffB(prevYear, prevMonth)
-    return { start: addDays(prevCutB, 1), end: cutA, payday: paydayA(year, month) }
+    return { start: addDays(prevCutB, 1), end: cutA, payday: payA }
   }
 
   const cutB = cutoffB(year, month)
-  if (today.getTime() <= cutB.getTime()) {
-    return { start: addDays(cutA, 1), end: cutB, payday: paydayB(year, month) }
+  const payB = paydayB(year, month)
+  if (today.getTime() <= payB.getTime()) {
+    return { start: addDays(cutA, 1), end: cutB, payday: payB }
   }
 
   const nextMonth = month === 11 ? 0 : month + 1
