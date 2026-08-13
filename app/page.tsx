@@ -18,6 +18,7 @@ const ADMIN_DASHBOARD: MenuItem[] = [
   { href: '/admin', icon: '🛠️', title: 'Admin Dashboard', description: 'Manage employees, records, and requests.' },
   { href: '/admin/assess', icon: '⭐', title: 'Skills Assessment', description: 'Rate employee skills, one at a time, for raise consideration.' },
   { href: '/admin/attendance', icon: '🕒', title: 'Attendance', description: 'View punch records for every employee this pay period.' },
+  { href: '/admin/requests', icon: '📥', title: 'Requests', description: 'See who filed a Cash Advance, Loan, Overtime, or Leave request this pay period.' },
   { href: '/admin/applicants', icon: '📄', title: 'Applicant Screening', description: 'Send screening links to applicants and review their biodata.' },
   { href: '/admin/assessments', icon: '🧠', title: 'Applicant Assessment', description: 'Send the assessment exam, then review scores and essays.' },
 ]
@@ -66,12 +67,16 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export default async function Home() {
   const employee = await getCurrentEmployee()
-  // Loan is only available to Regular employees — Trainees and Probationary hires
-  // don't yet qualify for the payday-installment loan program. Admins (ADMIN_EMAILS)
-  // bypass this regardless of their HR record.
-  const forms = (employee?.employment_status === 'Regular' || employee?.isAdmin)
-    ? FORMS
-    : FORMS.filter(item => item.href !== '/loan')
+  // Forms are self-service filing pages ("request a cash advance for yourself") — an
+  // Admin reviewing everyone else's filings isn't the one filling these out, so they get
+  // the Requests overview tile above instead, not the forms themselves (see ADMIN_DASHBOARD).
+  // Loan is further gated to Regular employees — Trainees and Probationary hires don't
+  // yet qualify for the payday-installment loan program.
+  const forms = employee?.isAdmin
+    ? []
+    : employee?.employment_status === 'Regular'
+      ? FORMS
+      : FORMS.filter(item => item.href !== '/loan')
   const myRecords = employee?.isAdmin ? ADMIN_DASHBOARD : MY_RECORDS
 
   return (
@@ -90,10 +95,14 @@ export default async function Home() {
             {myRecords.map(item => <MenuCard key={item.href} item={item} />)}
           </div>
 
-          <SectionLabel>Forms</SectionLabel>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-            {forms.map(item => <MenuCard key={item.href} item={item} />)}
-          </div>
+          {forms.length > 0 && (
+            <>
+              <SectionLabel>Forms</SectionLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                {forms.map(item => <MenuCard key={item.href} item={item} />)}
+              </div>
+            </>
+          )}
 
           <SectionLabel>Evaluation</SectionLabel>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
