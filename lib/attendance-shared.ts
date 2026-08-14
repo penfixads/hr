@@ -135,7 +135,7 @@ export function evaluatePunch(
       isLate: true,
       lateMinutes: over,
       undertimeMinutes: 0,
-      reason: `Break over by ${formatMinutes(over)} — ${LUNCH_BREAK_MINUTES}m allowed, took ${formatMinutes(breakMinutes)}`,
+      reason: `Break over by ${formatMinutes(over)} — ${formatMinutes(LUNCH_BREAK_MINUTES)} allowed, took ${formatMinutes(breakMinutes)}`,
     }
   }
 
@@ -173,11 +173,17 @@ export function evaluatePunchLateness(
   return { isFlagged: evaluation.isLate, reason: evaluation.isLate ? evaluation.reason : null }
 }
 
+function pluralUnit(n: number, singular: string): string {
+  return `${n}${singular}${n === 1 ? '' : 's'}`
+}
+
 export function formatMinutes(total: number): string {
-  if (total <= 0) return '0m'
+  if (total <= 0) return '0mins'
   const h = Math.floor(total / 60)
   const m = total % 60
-  return h > 0 ? `${h}h ${m}m` : `${m}m`
+  if (h > 0 && m > 0) return `${pluralUnit(h, 'hr')} ${pluralUnit(m, 'min')}`
+  if (h > 0) return pluralUnit(h, 'hr')
+  return pluralUnit(m, 'min')
 }
 
 // Groups punches by office-local calendar day, most recent first — ported from
