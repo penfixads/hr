@@ -251,7 +251,12 @@ export default function RequestsOverviewClient({ entries }: { entries: RequestsO
                     <div className="flex items-center gap-2 text-xs text-gray-500">
                       {entry.cashAdvances.length > 0 && <span>{countLabel(entry.cashAdvances.length, 'cash advance')}</span>}
                       {entry.loans.length > 0 && <span>{countLabel(entry.loans.length, 'loan')}</span>}
-                      {entry.overtimes.length > 0 && <span>{countLabel(entry.overtimes.length, 'OT filing')}</span>}
+                      {entry.overtimes.length > 0 && (
+                        <span>
+                          {countLabel(entry.overtimes.length, 'OT filing')}
+                          {' '}({formatOvertimeHours(entry.overtimes.reduce((sum, o) => sum + overtimeMinutes(o), 0))})
+                        </span>
+                      )}
                       {entry.leaves.length > 0 && <span>{countLabel(entry.leaves.length, 'leave filing')}</span>}
                     </div>
                     {pendingCount > 0 && (
