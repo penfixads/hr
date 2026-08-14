@@ -5,7 +5,7 @@ import EmployeeRecordSummary from '@/components/EmployeeRecordSummary'
 import BossRatingEditor from '@/components/BossRatingEditor'
 import { supabase } from '@/lib/supabase'
 import { getEmployeeRecords } from '@/lib/employee-records'
-import { getAttendanceLogsForEmployee, summarizePayPeriod, computeAbsentDays, expandLeaveDateKeys } from '@/lib/attendance'
+import { getAttendanceLogsForEmployee, summarizePayPeriod, computeAbsentDays, sumAbsentDays, expandLeaveDateKeys } from '@/lib/attendance'
 import { getCurrentPayPeriod, getNextPayday } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
 import { computeLeaveBalances } from '@/lib/leave'
@@ -62,7 +62,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
 
   const todayKey = getOfficeDateKey(new Date())
   const attendance = summarizePayPeriod(attendanceLogs, todayKey)
-  const absentDays = computeAbsentDays(payPeriod.start, payPeriod.end, attendance.dayGroups, expandLeaveDateKeys(records.leaves), todayKey)
+  const absentDays = sumAbsentDays(computeAbsentDays(payPeriod.start, payPeriod.end, attendance.dayGroups, expandLeaveDateKeys(records.leaves), todayKey))
   const leaveBalances = computeLeaveBalances(records.leaves, employee.date_joined)
 
   const infoRow = (label: string, value?: string) => value ? (
@@ -126,7 +126,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           payPeriod={payPeriod}
           nextPayday={nextPayday}
           attendance={attendance}
-          absentDays={absentDays.length}
+          absentDays={absentDays}
         />
 
         <BossRatingEditor

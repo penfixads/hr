@@ -293,12 +293,20 @@ function officeCalendarDateKey(d: Date): string {
 // this is the one place to change it (or extend the signature to take a per-employee rule).
 const REST_DAY_OF_WEEK = 0 // Date#getUTCDay(): 0 = Sunday
 
-// Calendar dates in [periodStart, periodEnd] that were expected to be worked but have
-// zero punches at all — not derivable from dayGroups alone: a day with no punches never
-// gets a group in the first place (see groupLogsByDay), so it's invisible to
-// completeDays/incompleteDays. Excludes the rest day, company holidays (lib/ph-holidays.ts),
-// dates covered by a filed Leave request, and today/future dates (can't call a day absent
-// before it's finished, same rule incompleteDays already follows).
+export type AbsenceEntry = { dateKey: string; half: boolean }
+
+// Calendar dates in [periodStart, periodEnd] that were expected to be worked but either
+// have zero punches at all, or clearly show up for only half the day — not derivable from
+// dayGroups alone: a day with no punches never gets a group in the first place (see
+// groupLogsByDay), so it's invisible to completeDays/incompleteDays. Excludes the rest
+// day, company holidays (lib/ph-holidays.ts), dates covered by a filed Leave request, and
+// today/future dates (can't call a day absent before it's finished, same rule
+// incompleteDays already follows).
+//
+// A "half" absence is the whole morning (Login + Lunch Out) or the whole afternoon (After
+// Lunch In + Logout) missing while the other half is punched — someone who genuinely only
+// worked half the day, not just a single forgotten punch (which stays a plain Incomplete
+// Day / Missing Login-or-Logout flag, not an absence).
 //
 // leaveDateKeys is every 'YYYY-MM-DD' an employee's leave_requests cover — leave_requests
 // has no approval workflow in this app (see getRequestsOverviewForPeriod's comment), so a
@@ -309,9 +317,9 @@ export function computeAbsentDays(
   dayGroups: DayGroup[],
   leaveDateKeys: Set<string>,
   todayKey: string
-): string[] {
-  const punchedKeys = new Set(dayGroups.map(g => g.dateKey))
-  const absentDates: string[] = []
+): AbsenceEntry[] {
+  const groupByDate = new Map(dayGroups.map(g => [g.dateKey, g]))
+  const absences: AbsenceEntry[] = []
   const oneDayMs = 24 * 60 * 60 * 1000
   for (let t = periodStart.getTime(); t <= periodEnd.getTime(); t += oneDayMs) {
     const local = new Date(t + 8 * 60 * 60 * 1000)
@@ -320,10 +328,20 @@ export function computeAbsentDays(
     if (local.getUTCDay() === REST_DAY_OF_WEEK) continue
     if (dateKey in PH_HOLIDAYS) continue
     if (leaveDateKeys.has(dateKey)) continue
-    if (punchedKeys.has(dateKey)) continue
-    absentDates.push(dateKey)
+
+    const group = groupByDate.get(dateKey)
+    if (!group) { absences.push({ dateKey, half: false }); continue }
+
+    const missedMorning = !group.steps.login && !group.steps.lunchout && !!group.steps.afterlunchin && !!group.steps.logout
+    const missedAfternoon = !!group.steps.login && !!group.steps.lunchout && !group.steps.afterlunchin && !group.steps.logout
+    if (missedMorning || missedAfternoon) absences.push({ dateKey, half: true })
   }
-  return absentDates
+  return absences
+}
+
+// Total absent days counting a half-day as 0.5 — what the Absent Days stat displays.
+export function sumAbsentDays(absences: AbsenceEntry[]): number {
+  return absences.reduce((sum, a) => sum + (a.half ? 0.5 : 1), 0)
 }
 
 // Expands an employee's leave_requests into the set of individual dates they cover, for

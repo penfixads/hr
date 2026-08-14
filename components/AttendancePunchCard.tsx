@@ -73,7 +73,7 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
       <p className="text-xs text-gray-400 mb-4 -mt-2">
         Undertime hours here are derived from early logouts only — separate from any approved undertime request on file.
         Overtime hours here are derived from extra punches after the day&apos;s Login–Logout is already complete — separate from any filed Overtime request.
-        Absent Days assumes Sunday off and every other day worked, excluding company holidays and filed Leave dates — today and future dates are never counted.
+        Absent Days assumes Sunday off and every other day worked, excluding company holidays and filed Leave dates — today and future dates are never counted. A day punched for only the morning or only the afternoon counts as 0.5.
       </p>
 
       {isAdmin && userEmail && <AttendanceAddPunchButton userEmail={userEmail} />}

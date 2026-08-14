@@ -5,7 +5,7 @@ import EmployeeRecordSummary from '@/components/EmployeeRecordSummary'
 import { getCurrentEmployee } from '@/lib/employee-session'
 import { supabase } from '@/lib/supabase'
 import { getEmployeeRecords } from '@/lib/employee-records'
-import { getMyAttendanceLogs, summarizePayPeriod, computeAbsentDays, expandLeaveDateKeys } from '@/lib/attendance'
+import { getMyAttendanceLogs, summarizePayPeriod, computeAbsentDays, sumAbsentDays, expandLeaveDateKeys } from '@/lib/attendance'
 import { getCurrentPayPeriod, getNextPayday } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
 import { computeLeaveBalances } from '@/lib/leave'
@@ -45,7 +45,7 @@ export default async function MyRecordsPage() {
 
   const todayKey = getOfficeDateKey(new Date())
   const attendance = summarizePayPeriod(attendanceLogs, todayKey)
-  const absentDays = computeAbsentDays(payPeriod.start, payPeriod.end, attendance.dayGroups, expandLeaveDateKeys(records.leaves), todayKey)
+  const absentDays = sumAbsentDays(computeAbsentDays(payPeriod.start, payPeriod.end, attendance.dayGroups, expandLeaveDateKeys(records.leaves), todayKey))
   const leaveBalances = computeLeaveBalances(records.leaves, (full as { date_joined: string | null } | null)?.date_joined ?? null)
 
   return (
@@ -68,7 +68,7 @@ export default async function MyRecordsPage() {
           payPeriod={payPeriod}
           nextPayday={nextPayday}
           attendance={attendance}
-          absentDays={absentDays.length}
+          absentDays={absentDays}
         />
       </main>
       <PenfixFooter />
