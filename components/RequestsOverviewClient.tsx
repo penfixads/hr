@@ -144,6 +144,38 @@ function OvertimeEditRow({ overtime, onDone }: { overtime: OvertimeRow; onDone: 
   )
 }
 
+// Removes an accidental duplicate filing (e.g. the same overtime submitted twice) — no
+// undo, so this confirms before calling /api/overtime-edit's DELETE handler.
+function DeleteOvertimeButton({ requestId }: { requestId: string }) {
+  const router = useRouter()
+  const [deleting, setDeleting] = useState(false)
+  const [error, setError] = useState('')
+
+  async function remove() {
+    if (!confirm('Delete this overtime filing? This cannot be undone.')) return
+    setDeleting(true)
+    setError('')
+    const res = await fetch('/api/overtime-edit', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_id: requestId }),
+    })
+    setDeleting(false)
+    if (res.ok) router.refresh()
+    else setError('Delete failed — make sure you are logged in as Admin.')
+  }
+
+  return (
+    <>
+      <button onClick={remove} disabled={deleting} title="Delete"
+        className="text-xs font-semibold px-2 py-1 rounded text-white disabled:opacity-60" style={{ backgroundColor: '#dc2626' }}>
+        🗑
+      </button>
+      {error && <span className="text-xs text-red-600 ml-1">{error}</span>}
+    </>
+  )
+}
+
 function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['overtimes'] }) {
   const [editingId, setEditingId] = useState<string | null>(null)
   if (overtimes.length === 0) return <EmptyRow>No overtime filed this period.</EmptyRow>
@@ -174,6 +206,7 @@ function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['ove
                     className="text-xs font-semibold px-2 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50">
                     ✎ Edit
                   </button>
+                  <DeleteOvertimeButton requestId={o.id} />
                 </div>
               </td>
             </tr>

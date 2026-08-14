@@ -34,3 +34,24 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ success: true })
 }
+
+// Lets an Admin remove an accidental duplicate filing (e.g. the same overtime submitted
+// twice) — no undo, same as attendance punch deletion (app/api/attendance-log/route.ts),
+// so the client confirms before calling this.
+export async function DELETE(req: NextRequest) {
+  const admin = await getAdminSession()
+  if (!admin) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
+  const { request_id } = await req.json()
+  if (!request_id) {
+    return NextResponse.json({ error: 'Missing request_id.' }, { status: 400 })
+  }
+
+  const supabase = getAdminClient()
+  const { error } = await supabase.from('overtime_requests').delete().eq('id', request_id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}
