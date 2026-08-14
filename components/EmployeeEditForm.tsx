@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 interface EditableFields {
   nickname: string
   date_of_birth: string
+  position: string
   address: string
   mobile: string
   telephone: string
@@ -42,8 +43,8 @@ export default function EmployeeEditForm({ employeeId, initial }: Props) {
     setFields(f => ({ ...f, [key]: value }))
 
   const handleSave = async () => {
-    if (!fields.address || !fields.mobile || !fields.email) {
-      setError('Address, Mobile Number, and Email are required.')
+    if (!fields.position || !fields.address || !fields.mobile || !fields.email) {
+      setError('Position, Address, Mobile Number, and Email are required.')
       return
     }
     if (!fields.emergency_name || !fields.emergency_relationship || !fields.emergency_mobile) {
@@ -88,6 +89,11 @@ export default function EmployeeEditForm({ employeeId, initial }: Props) {
             <label className={labelClass}>Date of Birth</label>
             <input type="date" style={focusStyle} className={inputClass} value={fields.date_of_birth}
               onChange={e => set('date_of_birth', e.target.value)} />
+          </div>
+          <div>
+            <label className={labelClass}>Current Position / Role {requiredStar}</label>
+            <input style={focusStyle} className={inputClass} value={fields.position}
+              onChange={e => set('position', e.target.value)} />
           </div>
           <div className="sm:col-span-2">
             <label className={labelClass}>Complete Home Address {requiredStar}</label>

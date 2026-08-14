@@ -26,13 +26,14 @@ export default async function EditMyRecordPage() {
 
   const { data } = await supabase
     .from('employees')
-    .select('nickname, date_of_birth, address, mobile, telephone, email, sss_number, pagibig_number, philhealth_number, emergency_name, emergency_relationship, emergency_mobile, emergency_alt, team, skills_self_rating')
+    .select('nickname, date_of_birth, position, address, mobile, telephone, email, sss_number, pagibig_number, philhealth_number, emergency_name, emergency_relationship, emergency_mobile, emergency_alt, team, skills_self_rating')
     .eq('id', employee.id)
     .single()
 
   const record = data as {
     nickname: string | null
     date_of_birth: string | null
+    position: string | null
     address: string | null
     mobile: string | null
     telephone: string | null
@@ -61,6 +62,7 @@ export default async function EditMyRecordPage() {
           initial={{
             nickname: record?.nickname ?? '',
             date_of_birth: record?.date_of_birth ?? '',
+            position: record?.position ?? '',
             address: record?.address ?? '',
             mobile: record?.mobile ?? '',
             telephone: record?.telephone ?? '',
