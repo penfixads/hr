@@ -85,10 +85,10 @@ function overtimeMinutes(o: { start_time: string; end_time: string }): number {
   return end - start
 }
 
+// Decimal hours (payroll convention), not h/m — 3h36m is 3.6, since 36 minutes is exactly
+// 0.6 of an hour.
 function formatOvertimeHours(totalMinutes: number): string {
-  const h = Math.floor(totalMinutes / 60)
-  const m = totalMinutes % 60
-  return m === 0 ? `${h}h` : `${h}h ${m}m`
+  return `${(totalMinutes / 60).toFixed(1)} hrs`
 }
 
 function OvertimeEditRow({ overtime, onDone }: { overtime: OvertimeRow; onDone: () => void }) {
@@ -226,13 +226,23 @@ function countLabel(n: number, singular: string) {
 export default function RequestsOverviewClient({ entries }: { entries: RequestsOverviewEmployee[] }) {
   const [search, setSearch] = useState('')
   const filtered = entries.filter(e => !search || e.employeeName.toLowerCase().includes(search.toLowerCase()))
+  const totalOvertimeMinutes = filtered.reduce(
+    (sum, e) => sum + e.overtimes.reduce((s, o) => s + overtimeMinutes(o), 0), 0
+  )
 
   return (
     <>
-      <input
-        type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)}
-        className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none"
-      />
+      <div className="flex flex-wrap items-center gap-4 mb-4">
+        <input
+          type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)}
+          className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
+        />
+        {totalOvertimeMinutes > 0 && (
+          <span className="text-sm text-gray-500">
+            Total Overtime{search && ' (matching search)'}: <span className="font-semibold" style={{ color: MAROON }}>{formatOvertimeHours(totalOvertimeMinutes)}</span>
+          </span>
+        )}
+      </div>
 
       {filtered.length === 0 ? (
         <div className="bg-white rounded-xl border shadow-sm p-12 text-center text-gray-400">
