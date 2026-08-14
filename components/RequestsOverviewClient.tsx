@@ -74,6 +74,23 @@ function toTimeInputValue(t: string) {
   return t.slice(0, 5)
 }
 
+// end_time <= start_time means the shift crossed midnight (e.g. 20:00–02:00 is 6h, not
+// negative) — add a day rather than treat it as a data error, since overnight OT is normal
+// for late installs.
+function overtimeMinutes(o: { start_time: string; end_time: string }): number {
+  const toMinutes = (t: string) => { const [h, m] = t.split(':').map(Number); return h * 60 + m }
+  const start = toMinutes(o.start_time)
+  let end = toMinutes(o.end_time)
+  if (end <= start) end += 24 * 60
+  return end - start
+}
+
+function formatOvertimeHours(totalMinutes: number): string {
+  const h = Math.floor(totalMinutes / 60)
+  const m = totalMinutes % 60
+  return m === 0 ? `${h}h` : `${h}h ${m}m`
+}
+
 function OvertimeEditRow({ overtime, onDone }: { overtime: OvertimeRow; onDone: () => void }) {
   const router = useRouter()
   const [otDate, setOtDate] = useState(overtime.ot_date)
@@ -130,6 +147,7 @@ function OvertimeEditRow({ overtime, onDone }: { overtime: OvertimeRow; onDone: 
 function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['overtimes'] }) {
   const [editingId, setEditingId] = useState<string | null>(null)
   if (overtimes.length === 0) return <EmptyRow>No overtime filed this period.</EmptyRow>
+  const totalMinutes = overtimes.reduce((sum, o) => sum + overtimeMinutes(o), 0)
   return (
     <table className="w-full text-sm">
       <thead>
@@ -162,6 +180,13 @@ function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['ove
           )
         ))}
       </tbody>
+      <tfoot>
+        <tr>
+          <td className="pt-2 pr-4 text-xs text-gray-500" colSpan={4}>
+            Total: <span className="font-semibold" style={{ color: MAROON }}>{formatOvertimeHours(totalMinutes)}</span>
+          </td>
+        </tr>
+      </tfoot>
     </table>
   )
 }
