@@ -1,7 +1,15 @@
 import { toOfficeLocal, officeLocalToUTC } from './office-time'
 import { PH_HOLIDAYS } from './ph-holidays'
 
-export type PayPeriod = { start: Date; end: Date; label: string }
+// `end` is the attendance cutoff (the last day actually worked in this cycle) — do not
+// widen it to cover payday; attendance-log queries (app/my-records, app/admin/employee,
+// app/admin/attendance) rely on it stopping exactly there, one day before the next cycle's
+// first attendance day. `payday` is exposed separately for callers that need "this period
+// is still current through its own payday" (see getRequestsOverviewForPeriod's resolved_at
+// bound in lib/employee-records.ts) — getPayCycle already treats the cycle as current up to
+// and including payday, so anything the cycle covers (like a same-day CA/loan approval)
+// should still be considered "this period" even though `end` itself hasn't reached that far.
+export type PayPeriod = { start: Date; end: Date; payday: Date; label: string }
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -69,17 +77,24 @@ function getPayCycle(today: Date): PayCycle {
   const year = today.getUTCFullYear()
   const month = today.getUTCMonth()
 
+  // Boundary is the payday itself, not the cutoff (payday - 1): the period being paid
+  // out needs to stay "current" through its own payday, so whoever is running payroll
+  // that day can still see the attendance they're paying for. It only rolls into the
+  // next cycle starting the day after payday. cutA/cutB (the actual last-attendance-day)
+  // are unchanged — only this display/query rollover point shifts by one day.
   const cutA = cutoffA(year, month)
-  if (today.getTime() <= cutA.getTime()) {
+  const payA = paydayA(year, month)
+  if (today.getTime() <= payA.getTime()) {
     const prevMonth = month === 0 ? 11 : month - 1
     const prevYear = month === 0 ? year - 1 : year
     const prevCutB = cutoffB(prevYear, prevMonth)
-    return { start: addDays(prevCutB, 1), end: cutA, payday: paydayA(year, month) }
+    return { start: addDays(prevCutB, 1), end: cutA, payday: payA }
   }
 
   const cutB = cutoffB(year, month)
-  if (today.getTime() <= cutB.getTime()) {
-    return { start: addDays(cutA, 1), end: cutB, payday: paydayB(year, month) }
+  const payB = paydayB(year, month)
+  if (today.getTime() <= payB.getTime()) {
+    return { start: addDays(cutA, 1), end: cutB, payday: payB }
   }
 
   const nextMonth = month === 11 ? 0 : month + 1
@@ -107,6 +122,7 @@ export function getCurrentPayPeriod(nowUtc: Date = new Date()): PayPeriod {
   return {
     start: officeLocalToUTC(cycle.start.getUTCFullYear(), cycle.start.getUTCMonth(), cycle.start.getUTCDate()),
     end: officeLocalToUTC(cycle.end.getUTCFullYear(), cycle.end.getUTCMonth(), cycle.end.getUTCDate(), 23, 59, 59, 999),
+    payday: officeLocalToUTC(cycle.payday.getUTCFullYear(), cycle.payday.getUTCMonth(), cycle.payday.getUTCDate(), 23, 59, 59, 999),
     label: labelFor(cycle.start, cycle.end),
   }
 }

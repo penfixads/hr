@@ -153,6 +153,16 @@ export default function AdminPage() {
               style={{ backgroundColor: '#4A0000' }}>
               Attendance
             </Link>
+            <Link href="/admin/requests"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ backgroundColor: '#4A0000' }}>
+              Requests
+            </Link>
+            <Link href="/admin/history"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ backgroundColor: '#4A0000' }}>
+              History
+            </Link>
             <button onClick={exportCSV}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
               style={{ backgroundColor: '#C9A84C' }}>

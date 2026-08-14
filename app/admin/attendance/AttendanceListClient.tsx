@@ -10,6 +10,7 @@ const MAROON = '#4A0000'
 type Entry = {
   employee: { id: string; full_name: string; email: string; employment_status: string; team: string }
   attendance: PayPeriodAttendanceSummary
+  absentDays: number
 }
 
 export default function AttendanceListClient({ entries }: { entries: Entry[] }) {
@@ -27,7 +28,7 @@ export default function AttendanceListClient({ entries }: { entries: Entry[] }) 
         <div className="bg-white rounded-xl border shadow-sm p-12 text-center text-gray-400">No employees found.</div>
       ) : (
         <div className="flex flex-col gap-4">
-          {filtered.map(({ employee, attendance }) => (
+          {filtered.map(({ employee, attendance, absentDays }) => (
             <details key={employee.id} open className="bg-white rounded-xl border shadow-sm p-6 group">
               <summary className="flex items-center justify-between cursor-pointer list-none mb-4 pb-2 border-b">
                 <div className="flex items-center gap-3">
@@ -41,7 +42,7 @@ export default function AttendanceListClient({ entries }: { entries: Entry[] }) 
                   <span className="text-xs text-gray-400 transition-transform group-open:rotate-180">▾</span>
                 </div>
               </summary>
-              <AttendancePunchCard attendance={attendance} isAdmin userEmail={employee.email} />
+              <AttendancePunchCard attendance={attendance} absentDays={absentDays} isAdmin userEmail={employee.email} />
             </details>
           ))}
         </div>

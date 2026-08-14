@@ -1,4 +1,5 @@
-import { getOfficeDateKey } from '@/lib/office-time'
+import { getOfficeDateKey, OFFICE_DAY_START_HOUR } from '@/lib/office-time'
+import { PH_HOLIDAYS } from '@/lib/ph-holidays'
 
 // Split out from lib/attendance.ts: this half has no "next/headers" import, so client
 // components (e.g. AttendancePunchCard, used from the admin attendance list's client
@@ -40,6 +41,16 @@ export type DayGroup = {
   lateCount: number
   lateMinutes: number
   undertimeMinutes: number
+  // Punches beyond each step's first occurrence that day — an employee who already
+  // completed Login→Lunch Out→After Lunch In→Logout and then punches again (staying for
+  // unplanned work) instead of filing an Overtime request. Kept separate from `steps`
+  // rather than overwriting it: see groupLogsByDay's comment for why last-write-wins
+  // used to silently corrupt the day's real Login/Logout.
+  extraPunches: AttendanceLogRow[]
+  // Sum of (extraPunches[0]→[1]) + ([2]→[3]) + ... — consecutive extra punches paired
+  // chronologically into worked stretches. A trailing unpaired punch (still clocked in,
+  // or its closing punch never came) isn't counted.
+  overtimeMinutes: number
 }
 
 export type PayPeriodAttendanceSummary = {
@@ -49,6 +60,7 @@ export type PayPeriodAttendanceSummary = {
   lateCount: number
   lateMinutes: number
   undertimeMinutes: number
+  overtimeMinutes: number
   missingLoginDays: number
   missingLogoutDays: number
 }
@@ -97,7 +109,10 @@ export function evaluatePunch(
   createdAtIso: string,
   lunchOutIso?: string | null
 ): PunchEvaluation {
-  const actual = officeLocalMinutes(createdAtIso)
+  // `actual` grades against policy; `clock` is what the employee actually saw on the wall,
+  // and is the only one safe to print — hhmm(1585) would render as "26:25".
+  const actual = shiftMinutes(createdAtIso)
+  const clock = officeLocalMinutes(createdAtIso)
 
   if (step === 'login') {
     const over = actual - (LOGIN_EXPECTED.hour * 60 + LOGIN_EXPECTED.minute)
@@ -107,7 +122,7 @@ export function evaluatePunch(
       isLate: true,
       lateMinutes: over,
       undertimeMinutes: 0,
-      reason: `Late Login — expected ${expectedLabel}, punched ${hhmm(actual)}`,
+      reason: `Late Login — expected ${expectedLabel}, punched ${hhmm(clock)} (${formatMinutes(over)} late)`,
     }
   }
 
@@ -133,15 +148,27 @@ export function evaluatePunch(
     isLate: false,
     lateMinutes: 0,
     undertimeMinutes: early,
-    reason: `Early Logout — ${formatMinutes(early)} undertime (expected ${hhmm(LOGOUT_EXPECTED_MINUTES)}, punched ${hhmm(actual)})`,
+    reason: `Early Logout — ${formatMinutes(early)} undertime (expected ${hhmm(LOGOUT_EXPECTED_MINUTES)}, punched ${hhmm(clock)})`,
   }
 }
 
 const OFFICE_UTC_OFFSET_HOURS = 8
 
+// Wall-clock minutes past office-local midnight — for DISPLAY only.
 function officeLocalMinutes(iso: string): number {
   const local = new Date(new Date(iso).getTime() + OFFICE_UTC_OFFSET_HOURS * 60 * 60 * 1000)
   return local.getUTCHours() * 60 + local.getUTCMinutes()
+}
+
+// Minutes measured from the START of the shift day rather than from midnight — for
+// COMPARISON against the 08:00/17:00 thresholds. A punch in the small hours belongs to
+// the previous day's shift (see OFFICE_DAY_START_HOUR), so it continues past 24:00 rather
+// than resetting: an overnight logout at 02:25 is minute 1585, not minute 145. Without
+// this, `17:00 - 02:25` reads as 14h 35m of undertime for a crew that worked nine hours
+// LATE, and that figure feeds the payslip.
+function shiftMinutes(iso: string): number {
+  const clock = officeLocalMinutes(iso)
+  return clock < OFFICE_DAY_START_HOUR * 60 ? clock + 24 * 60 : clock
 }
 
 // Recomputes is_flagged/flag_reason for a given step + timestamp, so the admin edit/insert
@@ -169,12 +196,26 @@ export function formatMinutes(total: number): string {
 // Groups punches by office-local calendar day, most recent first — ported from
 // attendance/app/my-logs/MyLogsClient.tsx's grouping logic.
 //
+// Each step keeps its FIRST punch of the day, not its last: a day only has one real
+// Login and one real Logout, so once a step is filled, a later punch of the same type
+// is an employee staying for extra work after already completing the day (or double-
+// punching by mistake), not a correction — those go to extraPunches instead. This used
+// to be `group.steps[row.punch_type] = row` unconditionally, so a same-day re-login for
+// unplanned overtime silently overwrote the real morning Login with the evening one,
+// which then got graded as a huge "Late Login" against the 08:00 line instead of
+// crediting the extra hours worked (found 2026-08-14 on a real employee's record, whose
+// Late Hours read 13h57m because their evening OT punch had replaced their actual login).
+//
 // Two passes: After Lunch In is graded against that day's Lunch Out, which isn't
 // necessarily assigned yet while the first pass is still walking the rows (an Admin can
 // correct a punch's time so the stored order no longer matches the step order).
 export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
   const byDate = new Map<string, DayGroup>()
-  for (const row of rows) {
+  // Defensive sort — first-occurrence-wins below depends on chronological order, and
+  // callers already query with `.order('created_at')` but this keeps the function
+  // correct on its own regardless of what order it's handed.
+  const sorted = [...rows].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at))
+  for (const row of sorted) {
     const dateKey = getOfficeDateKey(new Date(row.created_at))
     if (!byDate.has(dateKey)) {
       byDate.set(dateKey, {
@@ -184,11 +225,15 @@ export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
         lateCount: 0,
         lateMinutes: 0,
         undertimeMinutes: 0,
+        extraPunches: [],
+        overtimeMinutes: 0,
       })
     }
     const group = byDate.get(dateKey)!
     if ((PUNCH_SEQUENCE as readonly string[]).includes(row.punch_type)) {
-      group.steps[row.punch_type as PunchType] = row
+      const step = row.punch_type as PunchType
+      if (!group.steps[step]) group.steps[step] = row
+      else group.extraPunches.push(row)
     }
   }
 
@@ -202,6 +247,12 @@ export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
       if (evaluation.isLate) group.lateCount += 1
       group.lateMinutes += evaluation.lateMinutes
       group.undertimeMinutes += evaluation.undertimeMinutes
+    }
+
+    for (let i = 0; i + 1 < group.extraPunches.length; i += 2) {
+      const startMs = Date.parse(group.extraPunches[i].created_at)
+      const endMs = Date.parse(group.extraPunches[i + 1].created_at)
+      if (endMs > startMs) group.overtimeMinutes += Math.round((endMs - startMs) / 60000)
     }
   }
 
@@ -218,6 +269,7 @@ export function summarizePayPeriod(rows: AttendanceLogRow[], todayKey: string): 
   let lateCount = 0
   let lateMinutes = 0
   let undertimeMinutes = 0
+  let overtimeMinutes = 0
   let missingLoginDays = 0
   let missingLogoutDays = 0
   for (const day of dayGroups) {
@@ -227,10 +279,78 @@ export function summarizePayPeriod(rows: AttendanceLogRow[], todayKey: string): 
     lateCount += day.lateCount
     lateMinutes += day.lateMinutes
     undertimeMinutes += day.undertimeMinutes
+    overtimeMinutes += day.overtimeMinutes
     if (day.dateKey !== todayKey) {
       if (!day.steps.login) missingLoginDays++
       if (!day.steps.logout) missingLogoutDays++
     }
   }
-  return { dayGroups, completeDays, incompleteDays, lateCount, lateMinutes, undertimeMinutes, missingLoginDays, missingLogoutDays }
+  return { dayGroups, completeDays, incompleteDays, lateCount, lateMinutes, undertimeMinutes, overtimeMinutes, missingLoginDays, missingLogoutDays }
+}
+
+// Plain office-local calendar date — deliberately NOT getOfficeDateKey's 5am-shifted
+// "shift day" above. Absence is judged one calendar date at a time (was this date worked
+// at all), not by the overnight-install grouping punches use, so a post-midnight punch
+// shifting which shift-day IT belongs to must not also shift which calendar date counts
+// as covered here. Same distinction, same arithmetic, as lib/employee-records.ts's
+// private officeCalendarDate — duplicated rather than imported, matching this file's own
+// existing convention of small offset-only helpers kept local to where they're used.
+function officeCalendarDateKey(d: Date): string {
+  const local = new Date(d.getTime() + 8 * 60 * 60 * 1000)
+  return `${local.getUTCFullYear()}-${String(local.getUTCMonth() + 1).padStart(2, '0')}-${String(local.getUTCDate()).padStart(2, '0')}`
+}
+
+// Default rest day assumed below: Sunday off, every other calendar day (Saturday
+// included) expected to be worked. This matches the actual punch pattern seen across the
+// crew — Saturdays are routinely punched as ordinary full days, not occasional overtime —
+// rather than a generic Mon–Fri assumption. If a specific team's real schedule differs,
+// this is the one place to change it (or extend the signature to take a per-employee rule).
+const REST_DAY_OF_WEEK = 0 // Date#getUTCDay(): 0 = Sunday
+
+// Calendar dates in [periodStart, periodEnd] that were expected to be worked but have
+// zero punches at all — not derivable from dayGroups alone: a day with no punches never
+// gets a group in the first place (see groupLogsByDay), so it's invisible to
+// completeDays/incompleteDays. Excludes the rest day, company holidays (lib/ph-holidays.ts),
+// dates covered by a filed Leave request, and today/future dates (can't call a day absent
+// before it's finished, same rule incompleteDays already follows).
+//
+// leaveDateKeys is every 'YYYY-MM-DD' an employee's leave_requests cover — leave_requests
+// has no approval workflow in this app (see getRequestsOverviewForPeriod's comment), so a
+// filed leave already counts, same as it does for "relevant this period" there.
+export function computeAbsentDays(
+  periodStart: Date,
+  periodEnd: Date,
+  dayGroups: DayGroup[],
+  leaveDateKeys: Set<string>,
+  todayKey: string
+): string[] {
+  const punchedKeys = new Set(dayGroups.map(g => g.dateKey))
+  const absentDates: string[] = []
+  const oneDayMs = 24 * 60 * 60 * 1000
+  for (let t = periodStart.getTime(); t <= periodEnd.getTime(); t += oneDayMs) {
+    const local = new Date(t + 8 * 60 * 60 * 1000)
+    const dateKey = officeCalendarDateKey(new Date(t))
+    if (dateKey >= todayKey) continue
+    if (local.getUTCDay() === REST_DAY_OF_WEEK) continue
+    if (dateKey in PH_HOLIDAYS) continue
+    if (leaveDateKeys.has(dateKey)) continue
+    if (punchedKeys.has(dateKey)) continue
+    absentDates.push(dateKey)
+  }
+  return absentDates
+}
+
+// Expands an employee's leave_requests into the set of individual dates they cover, for
+// computeAbsentDays above. Inclusive of both start_date and end_date.
+export function expandLeaveDateKeys(leaves: { start_date: string; end_date: string }[]): Set<string> {
+  const keys = new Set<string>()
+  for (const leave of leaves) {
+    let cursor = new Date(leave.start_date + 'T00:00:00Z')
+    const end = new Date(leave.end_date + 'T00:00:00Z')
+    while (cursor.getTime() <= end.getTime()) {
+      keys.add(cursor.toISOString().slice(0, 10))
+      cursor = new Date(cursor.getTime() + 24 * 60 * 60 * 1000)
+    }
+  }
+  return keys
 }

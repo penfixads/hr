@@ -18,9 +18,12 @@ type Props = {
   payPeriod: PayPeriod
   nextPayday: Date
   attendance: PayPeriodAttendanceSummary
+  absentDays: number
 }
 
-function Card({ title, children }: { title: string; children: React.ReactNode }) {
+// Exported alongside the component so other admin views (components/RequestsOverviewClient.tsx)
+// render these request tables with identical formatting/colors instead of a second copy.
+export function Card({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="bg-white rounded-xl border shadow-sm p-6 mb-6">
       <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON }}>{title}</h3>
@@ -29,15 +32,15 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   )
 }
 
-function EmptyRow({ children }: { children: React.ReactNode }) {
+export function EmptyRow({ children }: { children: React.ReactNode }) {
   return <p className="text-sm text-gray-400">{children}</p>
 }
 
-function fmtDate(d: string) {
+export function fmtDate(d: string) {
   return new Date(d + 'T00:00:00').toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-function fmtSubmitted(d: string) {
+export function fmtSubmitted(d: string) {
   return new Date(d).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
@@ -47,7 +50,7 @@ function statusColor(status: string) {
   return '#ca8a04'
 }
 
-function StatusBadge({ status }: { status: string }) {
+export function StatusBadge({ status }: { status: string }) {
   return (
     <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ color: statusColor(status), backgroundColor: `${statusColor(status)}1a` }}>
       {status}
@@ -55,7 +58,7 @@ function StatusBadge({ status }: { status: string }) {
   )
 }
 
-export default function EmployeeRecordSummary({ mode, employee, records, leaveBalances, payPeriod, nextPayday, attendance }: Props) {
+export default function EmployeeRecordSummary({ mode, employee, records, leaveBalances, payPeriod, nextPayday, attendance, absentDays }: Props) {
   const possessive = mode === 'self' ? 'Your' : `${employee.full_name}'s`
 
   return (
@@ -64,6 +67,7 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
       <Card title={`Attendance — ${payPeriod.label}`}>
         <AttendancePunchCard
           attendance={attendance}
+          absentDays={absentDays}
           leadingStat={{ label: 'Upcoming Payday', value: formatOfficeDate(nextPayday) }}
           isAdmin={mode === 'admin'}
           userEmail={employee.email}

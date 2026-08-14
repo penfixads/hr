@@ -1,4 +1,4 @@
-import { PUNCH_SEQUENCE, PUNCH_LABELS, formatMinutes, type PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
+import { PUNCH_SEQUENCE, PUNCH_LABELS, formatMinutes, type PayPeriodAttendanceSummary, type PunchType } from '@/lib/attendance-shared'
 import AttendancePunchRowActions from '@/components/AttendancePunchRowActions'
 import AttendancePunchAddAction from '@/components/AttendancePunchAddAction'
 import AttendanceAddPunchButton from '@/components/AttendanceAddPunchButton'
@@ -7,6 +7,9 @@ const MAROON = '#4A0000'
 
 type Props = {
   attendance: PayPeriodAttendanceSummary
+  // Calendar days this period with zero punches at all — a day, company holiday, or a
+  // filed Leave date is never counted, see lib/attendance-shared.ts's computeAbsentDays.
+  absentDays: number
   leadingStat?: { label: string; value: React.ReactNode }
   // Shows per-punch Edit/Delete/Add controls for correcting duplicate/mis-tagged punches or
   // filling in a missing one — only ever passed true from admin-gated surfaces
@@ -20,7 +23,7 @@ type Props = {
   userEmail?: string
 }
 
-export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, userEmail }: Props) {
+export default function AttendancePunchCard({ attendance, absentDays, leadingStat, isAdmin, userEmail }: Props) {
   return (
     <>
       <div className="flex flex-wrap gap-8 mb-4">
@@ -39,6 +42,10 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, 
           <div className="text-lg font-bold" style={{ color: attendance.incompleteDays > 0 ? '#b91c1c' : MAROON }}>{attendance.incompleteDays}</div>
         </div>
         <div>
+          <div className="text-xs text-gray-500">Absent Days</div>
+          <div className="text-lg font-bold" style={{ color: absentDays > 0 ? '#b91c1c' : MAROON }}>{absentDays}</div>
+        </div>
+        <div>
           <div className="text-xs text-gray-500">Late/Flagged Punches</div>
           <div className="text-lg font-bold" style={{ color: attendance.lateCount > 0 ? '#b91c1c' : MAROON }}>{attendance.lateCount}</div>
         </div>
@@ -51,6 +58,10 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, 
           <div className="text-lg font-bold" style={{ color: attendance.undertimeMinutes > 0 ? '#b91c1c' : MAROON }}>{formatMinutes(attendance.undertimeMinutes)}</div>
         </div>
         <div>
+          <div className="text-xs text-gray-500">Overtime Hours (punched)</div>
+          <div className="text-lg font-bold" style={{ color: attendance.overtimeMinutes > 0 ? '#15803d' : MAROON }}>{formatMinutes(attendance.overtimeMinutes)}</div>
+        </div>
+        <div>
           <div className="text-xs text-gray-500">Missing Login</div>
           <div className="text-lg font-bold" style={{ color: attendance.missingLoginDays > 0 ? '#b91c1c' : MAROON }}>{attendance.missingLoginDays} day{attendance.missingLoginDays === 1 ? '' : 's'}</div>
         </div>
@@ -61,6 +72,8 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, 
       </div>
       <p className="text-xs text-gray-400 mb-4 -mt-2">
         Undertime hours here are derived from early logouts only — separate from any approved undertime request on file.
+        Overtime hours here are derived from extra punches after the day&apos;s Login–Logout is already complete — separate from any filed Overtime request.
+        Absent Days assumes Sunday off and every other day worked, excluding company holidays and filed Leave dates — today and future dates are never counted.
       </p>
 
       {isAdmin && userEmail && <AttendanceAddPunchButton userEmail={userEmail} />}
@@ -130,6 +143,27 @@ export default function AttendancePunchCard({ attendance, leadingStat, isAdmin, 
                     )
                   })}
                 </div>
+                {day.extraPunches.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-gray-100">
+                    <p className="text-xs font-medium text-green-700 mb-1">
+                      Extra punches after this day&apos;s Login–Logout{day.overtimeMinutes > 0 && ` — ${formatMinutes(day.overtimeMinutes)} counted as Overtime`}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {day.extraPunches.map((row, i) => (
+                        <div key={row.id} className="border border-green-100 bg-green-50/50 rounded-lg px-2 py-1 text-xs flex items-center gap-1">
+                          <span className="text-gray-500">{i % 2 === 0 ? 'In' : 'Out'}</span>
+                          <span className="font-medium">
+                            {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' })}
+                          </span>
+                          {isAdmin && <AttendancePunchRowActions id={row.id} punchType={row.punch_type as PunchType} createdAtIso={row.created_at} />}
+                        </div>
+                      ))}
+                      {day.extraPunches.length % 2 === 1 && (
+                        <span className="text-xs text-gray-400 self-center">last one has no closing punch yet — not counted</span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             )
           })}
