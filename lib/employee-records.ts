@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase'
+import { expandLeaveDateKeys } from '@/lib/attendance-shared'
 
 export type CashAdvanceRow = {
   id: string; request_date: string; amount: number; reason: string | null
@@ -77,6 +78,32 @@ export async function getEmployeeRecords(employeeId: string): Promise<EmployeeRe
   }
 }
 
+// Bulk leave lookup for lib/attendance-shared.ts's computeAbsentDays, batched across
+// employees like getAttendanceLogsForEmployees — used by the admin attendance roster
+// (app/admin/attendance/page.tsx), which otherwise never fetches leave_requests at all.
+// Overlap query (not just "starts inside the period") so a leave that started before this
+// period but runs into it still exempts the days it actually covers here.
+export async function getLeaveDateKeysForEmployees(employeeIds: string[], periodStartKey: string, periodEndKey: string): Promise<Record<string, Set<string>>> {
+  if (employeeIds.length === 0) return {}
+  const { data } = await supabase
+    .from('leave_requests')
+    .select('employee_id, start_date, end_date')
+    .in('employee_id', employeeIds)
+    .lte('start_date', periodEndKey)
+    .gte('end_date', periodStartKey)
+
+  const byEmployee: Record<string, { start_date: string; end_date: string }[]> = {}
+  for (const row of (data as { employee_id: string; start_date: string; end_date: string }[]) ?? []) {
+    (byEmployee[row.employee_id] ??= []).push(row)
+  }
+
+  const result: Record<string, Set<string>> = {}
+  for (const [employeeId, leaves] of Object.entries(byEmployee)) {
+    result[employeeId] = expandLeaveDateKeys(leaves)
+  }
+  return result
+}
+
 export type RequestsOverviewEmployee = {
   employeeId: string
   employeeName: string
@@ -90,7 +117,7 @@ export type RequestsOverviewEmployee = {
 // (request_date / ot_date / start_date) — deliberately NOT lib/office-time.ts's
 // getOfficeDateKey, which shifts small-hours instants to the previous day for attendance
 // punches specifically. These are ordinary calendar dates with no such shift.
-function officeCalendarDate(d: Date): string {
+export function officeCalendarDate(d: Date): string {
   const local = new Date(d.getTime() + 8 * 60 * 60 * 1000)
   return `${local.getUTCFullYear()}-${String(local.getUTCMonth() + 1).padStart(2, '0')}-${String(local.getUTCDate()).padStart(2, '0')}`
 }
@@ -105,12 +132,19 @@ function officeCalendarDate(d: Date): string {
 // still Pending (regardless of when filed — an old unresolved request shouldn't fall off
 // the list) OR resolved (Approved/Rejected) during the period. Overtime / Leave have no
 // such workflow, so "relevant" is simply filed for a date inside the period.
-export async function getRequestsOverviewForPeriod(periodStart: Date, periodEnd: Date): Promise<RequestsOverviewEmployee[]> {
+//
+// resolvedCutoff (not periodEnd) bounds the "resolved" side deliberately: per
+// lib/payday.ts's getPayCycle, the period stays "current" through its own payday, one day
+// past periodEnd (the attendance cutoff) — so an approval made ON payday, while this page
+// is still showing that period, must not fall outside the window it's being checked
+// against, or it silently vanishes (never shown here, already too old for the next
+// period). Pass payPeriod.payday, not payPeriod.end.
+export async function getRequestsOverviewForPeriod(periodStart: Date, periodEnd: Date, resolvedCutoff: Date): Promise<RequestsOverviewEmployee[]> {
   const startIso = periodStart.toISOString()
-  const endIso = periodEnd.toISOString()
+  const resolvedCutoffIso = resolvedCutoff.toISOString()
   const startKey = officeCalendarDate(periodStart)
   const endKey = officeCalendarDate(periodEnd)
-  const pendingOrResolvedThisPeriod = `status.eq.Pending,and(resolved_at.gte.${startIso},resolved_at.lte.${endIso})`
+  const pendingOrResolvedThisPeriod = `status.eq.Pending,and(resolved_at.gte.${startIso},resolved_at.lte.${resolvedCutoffIso})`
 
   const [cashAdvances, loans, overtimes, leaves] = await Promise.all([
     supabase.from('cash_advance_requests')
@@ -148,4 +182,55 @@ export async function getRequestsOverviewForPeriod(periodStart: Date, periodEnd:
   for (const row of (leaves.data as WithEmployee<LeaveRow>[] | null) ?? []) bucket(row.employee_id, row.employee_name).leaves.push(row)
 
   return Array.from(byEmployee.values()).sort((a, b) => a.employeeName.localeCompare(b.employeeName))
+}
+
+export type CashAdvanceHistoryRow = CashAdvanceRow & { employeeId: string; employeeName: string }
+export type LoanHistoryRow = LoanRow & { employeeId: string; employeeName: string }
+export type OvertimeHistoryRow = OvertimeRow & { employeeId: string; employeeName: string }
+export type UndertimeHistoryRow = UndertimeRow & { employeeId: string; employeeName: string }
+export type LeaveHistoryRow = LeaveRow & { employeeId: string; employeeName: string }
+
+export type RequestsHistory = {
+  cashAdvances: CashAdvanceHistoryRow[]
+  loans: LoanHistoryRow[]
+  overtimes: OvertimeHistoryRow[]
+  undertimes: UndertimeHistoryRow[]
+  leaves: LeaveHistoryRow[]
+}
+
+// Admin, every request of every type, every employee, all time — unlike
+// getRequestsOverviewForPeriod above, deliberately NOT scoped to a pay period. Powers the
+// browse-by-type history page (app/admin/history), the answer to "where do resolved
+// Cash Advance / Loan requests go once they've aged out of the current period's view" —
+// nowhere, they just aren't period-scoped here.
+export async function getAllRequestsHistory(): Promise<RequestsHistory> {
+  const [cashAdvances, loans, overtimes, undertimes, leaves] = await Promise.all([
+    supabase.from('cash_advance_requests')
+      .select('id, employee_id, employee_name, request_date, amount, reason, status, approved_by, resolved_at, reject_note, submitted_at')
+      .order('submitted_at', { ascending: false }),
+    supabase.from('loan_requests')
+      .select('id, employee_id, employee_name, request_date, amount, payment_per_payday, reason, status, approved_by, resolved_at, reject_note, submitted_at')
+      .order('submitted_at', { ascending: false }),
+    supabase.from('overtime_requests')
+      .select('id, employee_id, employee_name, ot_date, start_time, end_time, reason, filed_late, submitted_at')
+      .order('submitted_at', { ascending: false }),
+    supabase.from('undertime_requests')
+      .select('id, employee_id, employee_name, undertime_date, time_in, time_out, reason, submitted_at')
+      .order('submitted_at', { ascending: false }),
+    supabase.from('leave_requests')
+      .select('id, employee_id, employee_name, leave_type, start_date, end_date, reason, days_requested, filed_late, submitted_at')
+      .order('submitted_at', { ascending: false }),
+  ])
+
+  function withEmployee<T extends { employee_id: string; employee_name: string }>(rows: T[] | null): (T & { employeeId: string; employeeName: string })[] {
+    return (rows ?? []).map(r => ({ ...r, employeeId: r.employee_id, employeeName: r.employee_name }))
+  }
+
+  return {
+    cashAdvances: withEmployee(cashAdvances.data as (CashAdvanceRow & { employee_id: string; employee_name: string })[] | null),
+    loans: withEmployee(loans.data as (LoanRow & { employee_id: string; employee_name: string })[] | null),
+    overtimes: withEmployee(overtimes.data as (OvertimeRow & { employee_id: string; employee_name: string })[] | null),
+    undertimes: withEmployee(undertimes.data as (UndertimeRow & { employee_id: string; employee_name: string })[] | null),
+    leaves: withEmployee(leaves.data as (LeaveRow & { employee_id: string; employee_name: string })[] | null),
+  }
 }

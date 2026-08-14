@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function AdminRequestsPage() {
   const payPeriod = getCurrentPayPeriod()
-  const entries = await getRequestsOverviewForPeriod(payPeriod.start, payPeriod.end)
+  const entries = await getRequestsOverviewForPeriod(payPeriod.start, payPeriod.end, payPeriod.payday)
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -25,7 +25,10 @@ export default async function AdminRequestsPage() {
               Cash Advance &amp; Loan: Pending or resolved this period. Overtime &amp; Leave: filed for a date in this period.
             </p>
           </div>
-          <Link href="/admin" className="text-sm hover:underline" style={{ color: '#4A0000' }}>← Back to Dashboard</Link>
+          <div className="flex items-center gap-4">
+            <Link href="/admin/history" className="text-sm hover:underline" style={{ color: '#4A0000' }}>Full History →</Link>
+            <Link href="/admin" className="text-sm hover:underline" style={{ color: '#4A0000' }}>← Back to Dashboard</Link>
+          </div>
         </div>
 
         <RequestsOverviewClient entries={entries} />

@@ -1,9 +1,12 @@
 'use client'
 
 import { useState } from 'react'
-import type { RequestsOverviewEmployee } from '@/lib/employee-records'
+import { useRouter } from 'next/navigation'
+import type { RequestsOverviewEmployee, OvertimeRow } from '@/lib/employee-records'
 import { Card, EmptyRow, StatusBadge, fmtDate, fmtSubmitted } from '@/components/EmployeeRecordSummary'
 import RequestApprovalActions from '@/components/RequestApprovalActions'
+
+const inputClass = "border border-gray-300 rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-1 focus:ring-penfix-gold"
 
 const MAROON = '#4A0000'
 
@@ -65,7 +68,67 @@ function CashAdvanceTable({ cashAdvances }: { cashAdvances: RequestsOverviewEmpl
   )
 }
 
+// HH:MM, trimmed from the "HH:MM:SS" the DB returns, so it drops straight into a
+// type="time" input without the seconds tripping up its value matching.
+function toTimeInputValue(t: string) {
+  return t.slice(0, 5)
+}
+
+function OvertimeEditRow({ overtime, onDone }: { overtime: OvertimeRow; onDone: () => void }) {
+  const router = useRouter()
+  const [otDate, setOtDate] = useState(overtime.ot_date)
+  const [startTime, setStartTime] = useState(toTimeInputValue(overtime.start_time))
+  const [endTime, setEndTime] = useState(toTimeInputValue(overtime.end_time))
+  const [reason, setReason] = useState(overtime.reason)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+
+  const canSave = !!otDate && !!startTime && !!endTime && reason.trim() !== ''
+
+  async function save() {
+    if (!canSave) return
+    setSaving(true)
+    setError('')
+    const res = await fetch('/api/overtime-edit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ request_id: overtime.id, ot_date: otDate, start_time: startTime, end_time: endTime, reason: reason.trim() }),
+    })
+    setSaving(false)
+    if (res.ok) { router.refresh(); onDone() }
+    else setError('Save failed — make sure you are logged in as Admin.')
+  }
+
+  return (
+    <tr className="border-b border-gray-50 bg-amber-50/40">
+      <td className="py-2 pr-4 align-top"><input type="date" className={inputClass} value={otDate} onChange={e => setOtDate(e.target.value)} /></td>
+      <td className="py-2 px-3 align-top">
+        <div className="flex items-center gap-1">
+          <input type="time" className={inputClass} value={startTime} onChange={e => setStartTime(e.target.value)} />
+          <span className="text-gray-400">–</span>
+          <input type="time" className={inputClass} value={endTime} onChange={e => setEndTime(e.target.value)} />
+        </div>
+      </td>
+      <td className="py-2 px-3 align-top"><input type="text" className={inputClass} value={reason} onChange={e => setReason(e.target.value)} /></td>
+      <td className="py-2 pl-3 align-top">
+        <div className="flex gap-1 justify-end items-center">
+          <button onClick={save} disabled={saving || !canSave}
+            className="text-xs font-semibold px-2 py-1 rounded text-white disabled:opacity-60" style={{ backgroundColor: '#16a34a' }}>
+            {saving ? 'Saving...' : '✓ Save'}
+          </button>
+          <button onClick={onDone} disabled={saving}
+            className="text-xs font-semibold px-2 py-1 rounded border border-gray-300 text-gray-600">
+            ✕ Cancel
+          </button>
+        </div>
+        {error && <div className="text-xs text-red-600 text-right mt-1">{error}</div>}
+      </td>
+    </tr>
+  )
+}
+
 function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['overtimes'] }) {
+  const [editingId, setEditingId] = useState<string | null>(null)
   if (overtimes.length === 0) return <EmptyRow>No overtime filed this period.</EmptyRow>
   return (
     <table className="w-full text-sm">
@@ -79,12 +142,24 @@ function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['ove
       </thead>
       <tbody>
         {overtimes.map(o => (
-          <tr key={o.id} className="border-b border-gray-50">
-            <td className="py-2 pr-4 font-medium">{fmtDate(o.ot_date)}{o.filed_late && <span className="text-amber-600 text-xs ml-1">(late)</span>}</td>
-            <td className="py-2 px-3">{o.start_time} – {o.end_time}</td>
-            <td className="py-2 px-3 text-gray-600">{o.reason}</td>
-            <td className="py-2 pl-3 text-right text-gray-500 text-xs">{fmtSubmitted(o.submitted_at)}</td>
-          </tr>
+          editingId === o.id ? (
+            <OvertimeEditRow key={o.id} overtime={o} onDone={() => setEditingId(null)} />
+          ) : (
+            <tr key={o.id} className="border-b border-gray-50">
+              <td className="py-2 pr-4 font-medium">{fmtDate(o.ot_date)}{o.filed_late && <span className="text-amber-600 text-xs ml-1">(late)</span>}</td>
+              <td className="py-2 px-3">{o.start_time} – {o.end_time}</td>
+              <td className="py-2 px-3 text-gray-600">{o.reason}</td>
+              <td className="py-2 pl-3 text-right">
+                <div className="flex items-center justify-end gap-2">
+                  <span className="text-gray-500 text-xs">{fmtSubmitted(o.submitted_at)}</span>
+                  <button onClick={() => setEditingId(o.id)} title="Edit"
+                    className="text-xs font-semibold px-2 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50">
+                    ✎ Edit
+                  </button>
+                </div>
+              </td>
+            </tr>
+          )
         ))}
       </tbody>
     </table>

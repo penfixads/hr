@@ -2,7 +2,8 @@ import Link from 'next/link'
 import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import { supabase } from '@/lib/supabase'
-import { getAttendanceLogsForEmployees, summarizePayPeriod } from '@/lib/attendance'
+import { getAttendanceLogsForEmployees, summarizePayPeriod, computeAbsentDays } from '@/lib/attendance'
+import { getLeaveDateKeysForEmployees, officeCalendarDate } from '@/lib/employee-records'
 import { getCurrentPayPeriod } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
 import AttendanceListClient from './AttendanceListClient'
@@ -23,17 +24,20 @@ export default async function AdminAttendancePage() {
     .order('full_name', { ascending: true })
   const employees = (data as Employee[]) ?? []
 
-  const logsByEmail = await getAttendanceLogsForEmployees(
-    employees.map(e => e.email).filter(Boolean),
-    payPeriod.start,
-    payPeriod.end
-  )
+  const [logsByEmail, leaveDateKeysByEmployee] = await Promise.all([
+    getAttendanceLogsForEmployees(employees.map(e => e.email).filter(Boolean), payPeriod.start, payPeriod.end),
+    getLeaveDateKeysForEmployees(employees.map(e => e.id), officeCalendarDate(payPeriod.start), officeCalendarDate(payPeriod.end)),
+  ])
   const todayKey = getOfficeDateKey(new Date())
 
-  const entries = employees.map(emp => ({
-    employee: emp,
-    attendance: summarizePayPeriod(logsByEmail[emp.email] ?? [], todayKey),
-  }))
+  const entries = employees.map(emp => {
+    const attendance = summarizePayPeriod(logsByEmail[emp.email] ?? [], todayKey)
+    const absentDays = computeAbsentDays(
+      payPeriod.start, payPeriod.end, attendance.dayGroups,
+      leaveDateKeysByEmployee[emp.id] ?? new Set<string>(), todayKey
+    )
+    return { employee: emp, attendance, absentDays: absentDays.length }
+  })
 
   return (
     <div className="flex flex-col min-h-screen">

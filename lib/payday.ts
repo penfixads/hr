@@ -1,7 +1,15 @@
 import { toOfficeLocal, officeLocalToUTC } from './office-time'
 import { PH_HOLIDAYS } from './ph-holidays'
 
-export type PayPeriod = { start: Date; end: Date; label: string }
+// `end` is the attendance cutoff (the last day actually worked in this cycle) — do not
+// widen it to cover payday; attendance-log queries (app/my-records, app/admin/employee,
+// app/admin/attendance) rely on it stopping exactly there, one day before the next cycle's
+// first attendance day. `payday` is exposed separately for callers that need "this period
+// is still current through its own payday" (see getRequestsOverviewForPeriod's resolved_at
+// bound in lib/employee-records.ts) — getPayCycle already treats the cycle as current up to
+// and including payday, so anything the cycle covers (like a same-day CA/loan approval)
+// should still be considered "this period" even though `end` itself hasn't reached that far.
+export type PayPeriod = { start: Date; end: Date; payday: Date; label: string }
 
 const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
@@ -114,6 +122,7 @@ export function getCurrentPayPeriod(nowUtc: Date = new Date()): PayPeriod {
   return {
     start: officeLocalToUTC(cycle.start.getUTCFullYear(), cycle.start.getUTCMonth(), cycle.start.getUTCDate()),
     end: officeLocalToUTC(cycle.end.getUTCFullYear(), cycle.end.getUTCMonth(), cycle.end.getUTCDate(), 23, 59, 59, 999),
+    payday: officeLocalToUTC(cycle.payday.getUTCFullYear(), cycle.payday.getUTCMonth(), cycle.payday.getUTCDate(), 23, 59, 59, 999),
     label: labelFor(cycle.start, cycle.end),
   }
 }

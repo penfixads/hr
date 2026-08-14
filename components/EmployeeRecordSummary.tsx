@@ -18,6 +18,7 @@ type Props = {
   payPeriod: PayPeriod
   nextPayday: Date
   attendance: PayPeriodAttendanceSummary
+  absentDays: number
 }
 
 // Exported alongside the component so other admin views (components/RequestsOverviewClient.tsx)
@@ -57,7 +58,7 @@ export function StatusBadge({ status }: { status: string }) {
   )
 }
 
-export default function EmployeeRecordSummary({ mode, employee, records, leaveBalances, payPeriod, nextPayday, attendance }: Props) {
+export default function EmployeeRecordSummary({ mode, employee, records, leaveBalances, payPeriod, nextPayday, attendance, absentDays }: Props) {
   const possessive = mode === 'self' ? 'Your' : `${employee.full_name}'s`
 
   return (
@@ -66,6 +67,7 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
       <Card title={`Attendance — ${payPeriod.label}`}>
         <AttendancePunchCard
           attendance={attendance}
+          absentDays={absentDays}
           leadingStat={{ label: 'Upcoming Payday', value: formatOfficeDate(nextPayday) }}
           isAdmin={mode === 'admin'}
           userEmail={employee.email}
