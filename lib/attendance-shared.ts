@@ -177,6 +177,15 @@ function pluralUnit(n: number, singular: string): string {
   return `${n}${singular}${n === 1 ? '' : 's'}`
 }
 
+// Decimal hours (e.g. 5h22m -> "5.37hrs") for the pay-period aggregate stats (Late Hours,
+// Undertime Hours, Overtime Hours) — payroll convention, matches the Overtime totals on
+// the Requests page (components/RequestsOverviewClient.tsx). Kept separate from
+// formatMinutes below, which stays h/m for single-punch reason text (e.g. "7mins late"),
+// where a handful of minutes reading as "0.12hrs" would be a readability regression.
+export function formatDecimalHours(totalMinutes: number): string {
+  return `${(totalMinutes / 60).toFixed(2)}hrs`
+}
+
 export function formatMinutes(total: number): string {
   if (total <= 0) return '0mins'
   const h = Math.floor(total / 60)

@@ -1,4 +1,4 @@
-import { PUNCH_SEQUENCE, PUNCH_LABELS, formatMinutes, type PayPeriodAttendanceSummary, type PunchType } from '@/lib/attendance-shared'
+import { PUNCH_SEQUENCE, PUNCH_LABELS, formatDecimalHours, type PayPeriodAttendanceSummary, type PunchType } from '@/lib/attendance-shared'
 import AttendancePunchRowActions from '@/components/AttendancePunchRowActions'
 import AttendancePunchAddAction from '@/components/AttendancePunchAddAction'
 import AttendanceAddPunchButton from '@/components/AttendanceAddPunchButton'
@@ -51,15 +51,15 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
         </div>
         <div>
           <div className="text-xs text-gray-500">Late Hours</div>
-          <div className="text-lg font-bold" style={{ color: attendance.lateMinutes > 0 ? '#b91c1c' : MAROON }}>{formatMinutes(attendance.lateMinutes)}</div>
+          <div className="text-lg font-bold" style={{ color: attendance.lateMinutes > 0 ? '#b91c1c' : MAROON }}>{formatDecimalHours(attendance.lateMinutes)}</div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Undertime Hours</div>
-          <div className="text-lg font-bold" style={{ color: attendance.undertimeMinutes > 0 ? '#b91c1c' : MAROON }}>{formatMinutes(attendance.undertimeMinutes)}</div>
+          <div className="text-lg font-bold" style={{ color: attendance.undertimeMinutes > 0 ? '#b91c1c' : MAROON }}>{formatDecimalHours(attendance.undertimeMinutes)}</div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Overtime Hours (punched)</div>
-          <div className="text-lg font-bold" style={{ color: attendance.overtimeMinutes > 0 ? '#15803d' : MAROON }}>{formatMinutes(attendance.overtimeMinutes)}</div>
+          <div className="text-lg font-bold" style={{ color: attendance.overtimeMinutes > 0 ? '#15803d' : MAROON }}>{formatDecimalHours(attendance.overtimeMinutes)}</div>
         </div>
         <div>
           <div className="text-xs text-gray-500">Missing Login</div>
@@ -146,7 +146,7 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                 {day.extraPunches.length > 0 && (
                   <div className="mt-2 pt-2 border-t border-gray-100">
                     <p className="text-xs font-medium text-green-700 mb-1">
-                      Extra punches after this day&apos;s Login–Logout{day.overtimeMinutes > 0 && ` — ${formatMinutes(day.overtimeMinutes)} counted as Overtime`}
+                      Extra punches after this day&apos;s Login–Logout{day.overtimeMinutes > 0 && ` — ${formatDecimalHours(day.overtimeMinutes)} counted as Overtime`}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {day.extraPunches.map((row, i) => (
