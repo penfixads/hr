@@ -81,7 +81,7 @@ export default function OvertimeForm() {
       <div className={cardClass}>
         <div className="flex flex-col items-center justify-center py-10 text-center px-6">
           <div className="text-6xl mb-6">✅</div>
-          <h2 className="text-2xl font-bold mb-3 text-penfix-maroon">Overtime Filed!</h2>
+          <h2 className="text-2xl font-bold mb-3 text-penfix-gold-light">Overtime Filed!</h2>
           <p className="text-penfix-text-muted text-lg max-w-md">
             Thank you, {titleCase(selected?.full_name)} — your overtime for {otDate} has been recorded.
           </p>
@@ -92,7 +92,11 @@ export default function OvertimeForm() {
 
   return (
     <div className={cardClass}>
-      <h3 className="text-lg font-bold mb-1 text-penfix-maroon">Overtime Form</h3>
+      <div className="flex items-center gap-2 mb-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/myhricons/overtime.png" alt="" className="w-8 h-8 object-contain" />
+        <h3 className="text-lg font-bold text-penfix-gold-light">Overtime Form</h3>
+      </div>
       <p className="text-sm text-penfix-text-muted mb-6">
         Must be filed within 3 days after the overtime was worked, and requires prior notice to your
         supervisor, per company policy.

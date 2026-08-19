@@ -55,7 +55,11 @@ export default async function MyRecordsPage() {
       <PenfixHeader subtitle="MyHR" />
       <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <h2 className="text-2xl font-bold" style={{ color: '#D9BB6E' }}>{titleCase(employee.full_name)}&apos;s Records</h2>
+          <div className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/myhricons/MyHr.png" alt="" className="w-9 h-9 object-contain" />
+            <h2 className="text-2xl font-bold text-foreground">{titleCase(employee.full_name)}&apos;s Records</h2>
+          </div>
           <Link href="/my-records/edit"
             className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
             style={{ backgroundColor: '#4A0000' }}>

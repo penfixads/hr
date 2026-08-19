@@ -17,6 +17,9 @@ type MenuItem = {
   icon: string
   title: string
   description: string
+  // Custom artwork from public/images/myhricons — takes over from the emoji `icon`
+  // when set (see ItemIcon below). Only some tiles have one; the rest keep the emoji.
+  iconSrc?: string
   // Spans both grid columns — used for a lone item that would otherwise sit next to
   // an empty cell (e.g. Admin Dashboard above Attendance/Requests).
   wide?: boolean
@@ -111,40 +114,48 @@ async function getEmployeeSummary(employeeId: string) {
 }
 
 const MY_RECORDS: MenuItem[] = [
-  { href: '/my-records', icon: '📋', title: 'MyHR', description: 'View your attendance, requests, and evaluation history.' },
+  { href: '/my-records', icon: '📋', iconSrc: '/images/myhricons/MyHr.png', title: 'MyHR', description: 'View your attendance, requests, and evaluation history.' },
 ]
 
 const ADMIN_DASHBOARD: MenuItem[] = [
-  { href: '/admin', icon: '🛠️', title: 'Admin Dashboard', description: 'Manage employees, records, and requests.', wide: true },
-  { href: '/admin/attendance', icon: '🕒', title: 'Attendance', description: 'View punch records for every employee this pay period.' },
-  { href: '/admin/requests', icon: '📥', title: 'Requests', description: 'See who filed a Cash Advance, Loan, Overtime, or Leave request this pay period.' },
+  { href: '/admin', icon: '🛠️', iconSrc: '/images/admin%20hr/admin-dashboard.png', title: 'Admin Dashboard', description: 'Manage employees, records, and requests.', wide: true },
+  { href: '/admin/attendance', icon: '🕒', iconSrc: '/images/admin%20hr/attendance.png', title: 'Attendance', description: 'View punch records for every employee this pay period.' },
+  { href: '/admin/requests', icon: '📥', iconSrc: '/images/admin%20hr/request.png', title: 'Requests', description: 'See who filed a Cash Advance, Loan, Overtime, or Leave request this pay period.' },
 ]
 
 const ADMIN_SKILLS_ASSESSMENT: MenuItem[] = [
-  { href: '/admin/assess', icon: '⭐', title: 'Skills Assessment', description: 'Rate employee skills, one at a time, for raise consideration.' },
+  { href: '/admin/assess', icon: '⭐', iconSrc: '/images/admin%20hr/skills-assessment.png', title: 'Skills Assessment', description: 'Rate employee skills, one at a time, for raise consideration.' },
 ]
 
 const ADMIN_APPLICANTS: MenuItem[] = [
-  { href: '/admin/applicants', icon: '📄', title: 'Applicant Screening', description: 'Send screening links to applicants and review their biodata.' },
-  { href: '/admin/assessments', icon: '🧠', title: 'Applicant Assessment', description: 'Send the assessment exam, then review scores and essays.' },
+  { href: '/admin/applicants', icon: '📄', iconSrc: '/images/admin%20hr/applicant%20screening.png', title: 'Applicant Screening', description: 'Send screening links to applicants and review their biodata.' },
+  { href: '/admin/assessments', icon: '🧠', iconSrc: '/images/admin%20hr/applicant-assessment.png', title: 'Applicant Assessment', description: 'Send the assessment exam, then review scores and essays.' },
 ]
 
 const FORMS: MenuItem[] = [
-  { href: '/cash-advance', icon: '💵', title: 'Cash Advance', description: 'Request a cash advance.' },
+  { href: '/cash-advance', icon: '💵', iconSrc: '/images/myhricons/cash%20advance.png', title: 'Cash Advance', description: 'Request a cash advance.' },
   { href: '/loan', icon: '🏦', title: 'Loan', description: 'Request a regular loan, paid in installments.' },
-  { href: '/overtime', icon: '⏱️', title: 'Overtime', description: 'File overtime worked.' },
-  { href: '/leave', icon: '🌴', title: 'Leave', description: 'File sick or vacation leave.' },
-  { href: '/undertime', icon: '⏳', title: 'Undertime', description: 'File a late login or early logout.' },
+  { href: '/overtime', icon: '⏱️', iconSrc: '/images/myhricons/overtime.png', title: 'Overtime', description: 'File overtime worked.' },
+  { href: '/leave', icon: '🌴', iconSrc: '/images/myhricons/leave.png', title: 'Leave', description: 'File sick or vacation leave.' },
+  { href: '/undertime', icon: '⏳', iconSrc: '/images/myhricons/undertime.png', title: 'Undertime', description: 'File a late login or early logout.' },
 ]
 
 const OTHER: MenuItem[] = [
-  { href: '/evaluate', icon: '⭐', title: 'Quarterly Self-Evaluation', description: 'Submit your 15-point quarterly self-evaluation.' },
+  { href: '/evaluate', icon: '⭐', iconSrc: '/images/myhricons/quarterly%20eval.png', title: 'Quarterly Self-Evaluation', description: 'Submit your 15-point quarterly self-evaluation.' },
 ]
 
 const ONBOARDING: MenuItem[] = [
-  { href: '/creative', icon: '🎨', title: 'Creative Team Onboarding', description: 'Fill up your employee profile and skills self-assessment.' },
-  { href: '/production', icon: '🔧', title: 'Production Team Onboarding', description: 'Fill up your employee profile and skills self-assessment.' },
+  { href: '/creative', icon: '🎨', iconSrc: '/images/myhricons/creative%20team%20onboarding.png', title: 'Creative Team Onboarding', description: 'Fill up your employee profile and skills self-assessment.' },
+  { href: '/production', icon: '🔧', iconSrc: '/images/myhricons/prod%20onboarding.png', title: 'Production Team Onboarding', description: 'Fill up your employee profile and skills self-assessment.' },
 ]
+
+function ItemIcon({ item }: { item: MenuItem }) {
+  if (item.iconSrc) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={item.iconSrc} alt="" className="w-9 h-9 object-contain" />
+  }
+  return <span className="text-3xl">{item.icon}</span>
+}
 
 function MenuCard({ item }: { item: MenuItem }) {
   const hasSummary = item.wide && item.summary && item.summary.length > 0
@@ -160,8 +171,8 @@ function MenuCard({ item }: { item: MenuItem }) {
       {hasSummary ? (
         <>
           <div className="flex flex-col gap-2 p-6 sm:w-1/2">
-            <span className="text-3xl">{item.icon}</span>
-            <span className="text-lg font-bold text-penfix-gold-light">{item.title}</span>
+            <ItemIcon item={item} />
+            <span className="text-lg font-bold text-foreground">{item.title}</span>
             <span className="text-sm pf-text-muted">{item.description}</span>
           </div>
           <div
@@ -178,8 +189,8 @@ function MenuCard({ item }: { item: MenuItem }) {
         </>
       ) : (
         <>
-          <span className="text-3xl">{item.icon}</span>
-          <span className="text-lg font-bold text-penfix-gold-light">{item.title}</span>
+          <ItemIcon item={item} />
+          <span className="text-lg font-bold text-foreground">{item.title}</span>
           <span className="text-sm pf-text-muted">{item.description}</span>
         </>
       )}

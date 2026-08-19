@@ -132,7 +132,11 @@ export default function LeaveForm() {
 
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <h3 className="text-lg font-bold mb-1" style={{ color: '#D9BB6E' }}>Leave Form</h3>
+      <div className="flex items-center gap-2 mb-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/myhricons/leave.png" alt="" className="w-8 h-8 object-contain" />
+        <h3 className="text-lg font-bold" style={{ color: '#D9BB6E' }}>Leave Form</h3>
+      </div>
       <p className="text-sm text-penfix-text-muted mb-6">
         Vacation leave must be filed at least 3 days in advance. Sick leave must be filed within 3 days
         of returning to work.

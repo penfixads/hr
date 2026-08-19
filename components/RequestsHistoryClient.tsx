@@ -10,12 +10,12 @@ const MAROON_TEXT = '#D9BB6E'
 
 type RequestType = 'cashAdvances' | 'loans' | 'overtimes' | 'undertimes' | 'leaves'
 
-const TABS: { key: RequestType; label: string }[] = [
-  { key: 'cashAdvances', label: 'Cash Advances' },
+const TABS: { key: RequestType; label: string; icon?: string }[] = [
+  { key: 'cashAdvances', label: 'Cash Advances', icon: '/images/myhricons/cash%20advance.png' },
   { key: 'loans', label: 'Loans' },
-  { key: 'overtimes', label: 'Overtime' },
-  { key: 'undertimes', label: 'Undertime' },
-  { key: 'leaves', label: 'Leave' },
+  { key: 'overtimes', label: 'Overtime', icon: '/images/myhricons/overtime.png' },
+  { key: 'undertimes', label: 'Undertime', icon: '/images/myhricons/undertime.png' },
+  { key: 'leaves', label: 'Leave', icon: '/images/myhricons/leave.png' },
 ]
 
 type StatusFilter = 'All' | 'Pending' | 'Approved' | 'Rejected'
@@ -54,7 +54,13 @@ export default function RequestsHistoryClient({ history }: { history: RequestsHi
               ? { backgroundColor: MAROON, color: 'white' }
               : { backgroundColor: 'transparent', color: '#D9BB6E', border: '1px solid #C9A84C' }}
           >
-            {t.label} <span className="opacity-70">({history[t.key].length})</span>
+            <span className="inline-flex items-center gap-1.5">
+              {t.icon && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={t.icon} alt="" className="w-4 h-4 object-contain" />
+              )}
+              {t.label} <span className="opacity-70">({history[t.key].length})</span>
+            </span>
           </button>
         ))}
       </div>

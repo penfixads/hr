@@ -124,7 +124,7 @@ export default function AdminPage() {
   }
 
   const filtered = employees
-    .filter(e => filterTeam === 'All' || e.team === filterTeam.toLowerCase().replace(' ', '_'))
+    .filter(e => filterTeam === 'All' || e.team === filterTeam.split(' ')[0].toLowerCase())
     .filter(e => !search || e.full_name.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       let aVal: string | number, bVal: string | number

@@ -153,6 +153,16 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
 
   return (
     <div className="max-w-2xl mx-auto w-full">
+      <div className="flex items-center gap-2 mb-6">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={team === 'creative' ? '/images/myhricons/creative%20team%20onboarding.png' : '/images/myhricons/prod%20onboarding.png'}
+          alt="" className="w-8 h-8 object-contain"
+        />
+        <h3 className="text-lg font-bold" style={{ color: '#D9BB6E' }}>
+          {team === 'creative' ? 'Creative Team Onboarding' : 'Production Team Onboarding'}
+        </h3>
+      </div>
       {/* Progress bar */}
       <div className="mb-8">
         <div className="flex justify-between text-xs text-penfix-text-muted mb-2">

@@ -22,12 +22,32 @@ type Props = {
   absentDays: number
 }
 
+// Icons from public/images/myhricons — matched by prefix/substring since callers pass a
+// dynamic title (e.g. "Attendance — Aug 14–28, 2026"), not always the exact card name.
+// Only covers the titles that actually have uploaded artwork; the rest (Attendance, Loans)
+// fall back to no icon.
+function cardIcon(title: string): string | null {
+  if (title.startsWith('Leave')) return '/images/myhricons/leave.png'
+  if (title.startsWith('Cash Advances')) return '/images/myhricons/cash%20advance.png'
+  if (title.startsWith('Overtime')) return '/images/myhricons/overtime.png'
+  if (title.startsWith('Undertime')) return '/images/myhricons/undertime.png'
+  if (title.includes('Quarterly Evaluation')) return '/images/myhricons/quarterly%20eval.png'
+  return null
+}
+
 // Exported alongside the component so other admin views (components/RequestsOverviewClient.tsx)
 // render these request tables with identical formatting/colors instead of a second copy.
 export function Card({ title, children }: { title: string; children: React.ReactNode }) {
+  const icon = cardIcon(title)
   return (
     <div className="bg-penfix-card rounded-xl border shadow-sm p-6 mb-6">
-      <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON }}>{title}</h3>
+      <h3 className="font-bold text-base mb-4 pb-2 border-b flex items-center gap-2 text-foreground">
+        {icon && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={icon} alt="" className="w-6 h-6 object-contain" />
+        )}
+        {title}
+      </h3>
       {children}
     </div>
   )

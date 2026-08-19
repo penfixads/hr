@@ -94,7 +94,11 @@ export default function QuarterlyEvaluationForm() {
 
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <h3 className="text-lg font-bold mb-1" style={{ color: '#D9BB6E' }}>15-Point Quarterly Self-Evaluation</h3>
+      <div className="flex items-center gap-2 mb-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/myhricons/quarterly%20eval.png" alt="" className="w-8 h-8 object-contain" />
+        <h3 className="text-lg font-bold" style={{ color: '#D9BB6E' }}>15-Point Quarterly Self-Evaluation</h3>
+      </div>
       <p className="text-sm text-penfix-text-muted mb-6">
         Same 15 qualifications used in Penfix&apos;s manual quarterly evaluation. Pick yourself and
         the quarter, then rate yourself honestly from 1 (needs guidance) to 10 (excellent).

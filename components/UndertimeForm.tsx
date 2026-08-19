@@ -79,7 +79,11 @@ export default function UndertimeForm() {
 
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <h3 className="text-lg font-bold mb-1" style={{ color: '#D9BB6E' }}>Undertime Form</h3>
+      <div className="flex items-center gap-2 mb-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/myhricons/undertime.png" alt="" className="w-8 h-8 object-contain" />
+        <h3 className="text-lg font-bold" style={{ color: '#D9BB6E' }}>Undertime Form</h3>
+      </div>
       <p className="text-sm text-penfix-text-muted mb-6">
         File this if you logged in late or logged out early.
       </p>

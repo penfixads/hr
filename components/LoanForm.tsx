@@ -77,7 +77,7 @@ export default function LoanForm() {
       <div className={cardClass}>
         <div className="flex flex-col items-center justify-center py-10 text-center px-6">
           <div className="text-6xl mb-6">✅</div>
-          <h2 className="text-2xl font-bold mb-3 text-penfix-maroon">Request Submitted!</h2>
+          <h2 className="text-2xl font-bold mb-3 text-penfix-gold-light">Request Submitted!</h2>
           <p className="text-penfix-text-muted text-lg max-w-md">
             Thank you, {titleCase(selected?.full_name)} — your loan request of ₱{amountValue.toLocaleString()},
             payable at ₱{paymentValue.toLocaleString()} per payday over {numberOfPayments} payday{numberOfPayments === 1 ? '' : 's'}, has been recorded.
@@ -89,7 +89,7 @@ export default function LoanForm() {
 
   return (
     <div className={cardClass}>
-      <h3 className="text-lg font-bold mb-1 text-penfix-maroon">Loan Request</h3>
+      <h3 className="text-lg font-bold mb-1 text-penfix-gold-light">Loan Request</h3>
       <p className="text-sm text-penfix-text-muted mb-6">
         Fill out this form to request a regular loan, repaid in installments every payday.
       </p>
@@ -143,7 +143,7 @@ export default function LoanForm() {
         </div>
 
         {numberOfPayments > 0 && (
-          <div className="p-3 bg-penfix-gold/10 border border-penfix-gold/30 rounded-lg text-sm text-penfix-maroon">
+          <div className="p-3 bg-penfix-gold/10 border border-penfix-gold/30 rounded-lg text-sm text-penfix-gold-light">
             This loan will be paid off in <span className="font-bold">{numberOfPayments}</span> payday{numberOfPayments === 1 ? '' : 's'}.
           </div>
         )}

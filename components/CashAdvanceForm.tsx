@@ -69,7 +69,7 @@ export default function CashAdvanceForm() {
       <div className={cardClass}>
         <div className="flex flex-col items-center justify-center py-10 text-center px-6">
           <div className="text-6xl mb-6">✅</div>
-          <h2 className="text-2xl font-bold mb-3 text-penfix-maroon">Request Submitted!</h2>
+          <h2 className="text-2xl font-bold mb-3 text-penfix-gold-light">Request Submitted!</h2>
           <p className="text-penfix-text-muted text-lg max-w-md">
             Thank you, {titleCase(selected?.full_name)} — your cash advance request of ₱{amountValue.toLocaleString()} has been recorded.
           </p>
@@ -80,7 +80,11 @@ export default function CashAdvanceForm() {
 
   return (
     <div className={cardClass}>
-      <h3 className="text-lg font-bold mb-1 text-penfix-maroon">Cash Advance Request</h3>
+      <div className="flex items-center gap-2 mb-1">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/images/myhricons/cash%20advance.png" alt="" className="w-8 h-8 object-contain" />
+        <h3 className="text-lg font-bold text-penfix-gold-light">Cash Advance Request</h3>
+      </div>
       <p className="text-sm text-penfix-text-muted mb-6">
         Fill out this form to request a cash advance.
       </p>
