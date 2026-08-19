@@ -6,7 +6,7 @@
 // the suite they're in, since the SSO session carries across all of them.
 export default function PenfixHeader({ subtitle }: { subtitle?: string }) {
   return (
-    <header style={{ backgroundColor: '#5C001F' }} className="text-white shadow-lg">
+    <header style={{ backgroundColor: '#4A0000' }} className="text-white shadow-lg">
       <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col items-center gap-1">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -19,6 +19,9 @@ const ADMIN_DASHBOARD: MenuItem[] = [
   { href: '/admin/assess', icon: '⭐', title: 'Skills Assessment', description: 'Rate employee skills, one at a time, for raise consideration.' },
   { href: '/admin/attendance', icon: '🕒', title: 'Attendance', description: 'View punch records for every employee this pay period.' },
   { href: '/admin/requests', icon: '📥', title: 'Requests', description: 'See who filed a Cash Advance, Loan, Overtime, or Leave request this pay period.' },
+]
+
+const ADMIN_APPLICANTS: MenuItem[] = [
   { href: '/admin/applicants', icon: '📄', title: 'Applicant Screening', description: 'Send screening links to applicants and review their biodata.' },
   { href: '/admin/assessments', icon: '🧠', title: 'Applicant Assessment', description: 'Send the assessment exam, then review scores and essays.' },
 ]
@@ -44,22 +47,22 @@ function MenuCard({ item }: { item: MenuItem }) {
   return (
     <Link
       href={item.href}
-      className="group relative flex flex-col gap-2 p-6 rounded-2xl bg-white border border-gray-200 shadow-sm overflow-hidden transition-all duration-200 hover:shadow-xl hover:border-penfix-gold/60 hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-penfix-gold"
+      className="pf-card group relative flex flex-col gap-2 p-6 rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-xl hover:-translate-y-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-penfix-gold"
     >
       <span
         className="absolute inset-x-0 top-0 h-1 bg-penfix-gold scale-x-0 origin-left transition-transform duration-200 group-hover:scale-x-100"
         aria-hidden
       />
       <span className="text-3xl">{item.icon}</span>
-      <span className="text-lg font-bold text-penfix-maroon">{item.title}</span>
-      <span className="text-sm text-gray-500">{item.description}</span>
+      <span className="text-lg font-bold text-penfix-gold-light">{item.title}</span>
+      <span className="text-sm pf-text-muted">{item.description}</span>
     </Link>
   )
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-xs font-bold uppercase tracking-widest text-penfix-gold-dark mb-3">
+    <h3 className="text-xs font-bold uppercase tracking-widest text-penfix-gold mb-3">
       {children}
     </h3>
   )
@@ -78,6 +81,11 @@ export default async function Home() {
       ? FORMS
       : FORMS.filter(item => item.href !== '/loan')
   const myRecords = employee?.isAdmin ? ADMIN_DASHBOARD : MY_RECORDS
+  // full_name falls back to the login email when there's no matching employee row
+  // (see lib/employee-session.ts) — skip the greeting name rather than show an email.
+  const firstName = employee?.full_name && !employee.full_name.includes('@')
+    ? employee.full_name.split(' ')[0]
+    : ''
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -86,14 +94,25 @@ export default async function Home() {
       <main className="flex-1 px-6 py-16">
         <div className="max-w-4xl mx-auto w-full">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-3 text-penfix-maroon">Welcome</h2>
-            <p className="text-gray-600 text-lg">Pick what you&apos;d like to do.</p>
+            <h2 className="text-3xl font-bold mb-3 text-penfix-gold-light">
+              Welcome Back{firstName ? `, ${firstName}` : ''}!
+            </h2>
+            <p className="pf-text-muted text-lg">What records would you like to look at today?</p>
           </div>
 
           <SectionLabel>{employee?.isAdmin ? 'Admin' : 'MyHR'}</SectionLabel>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
             {myRecords.map(item => <MenuCard key={item.href} item={item} />)}
           </div>
+
+          {employee?.isAdmin && (
+            <>
+              <SectionLabel>Applicants</SectionLabel>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                {ADMIN_APPLICANTS.map(item => <MenuCard key={item.href} item={item} />)}
+              </div>
+            </>
+          )}
 
           {forms.length > 0 && (
             <>
@@ -114,10 +133,10 @@ export default async function Home() {
             {ONBOARDING.map(item => <MenuCard key={item.href} item={item} />)}
           </div>
 
-          <div className="text-center pt-6 border-t border-gray-200">
+          <div className="text-center pt-6" style={{ borderTop: '1px solid var(--penfix-border)' }}>
             <Link
               href="/admin"
-              className="inline-flex items-center gap-1.5 text-sm font-semibold text-penfix-maroon transition-colors hover:text-penfix-gold-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-penfix-gold rounded"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-penfix-gold-light transition-colors hover:text-penfix-gold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-penfix-gold rounded"
             >
               Admin Dashboard <span aria-hidden>→</span>
             </Link>

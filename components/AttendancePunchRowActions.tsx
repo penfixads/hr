@@ -70,20 +70,20 @@ export default function AttendancePunchRowActions({ id, punchType, createdAtIso 
     return (
       <div className="mt-1 flex flex-col gap-1">
         <select value={step} onChange={e => setStep(e.target.value as PunchType)}
-          className="border border-gray-300 rounded px-1 py-0.5 text-xs">
+          className="border border-penfix-border rounded px-1 py-0.5 text-xs">
           {PUNCH_SEQUENCE.map(s => <option key={s} value={s}>{PUNCH_LABELS[s]}</option>)}
         </select>
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
-          className="border border-gray-300 rounded px-1 py-0.5 text-xs" />
+          className="border border-penfix-border rounded px-1 py-0.5 text-xs" />
         <input type="time" value={time} onChange={e => setTime(e.target.value)}
-          className="border border-gray-300 rounded px-1 py-0.5 text-xs" />
+          className="border border-penfix-border rounded px-1 py-0.5 text-xs" />
         <div className="flex gap-1">
           <button onClick={save} disabled={submitting}
             className="text-xs font-semibold px-2 py-0.5 rounded text-white disabled:opacity-60" style={{ backgroundColor: MAROON }}>
             Save
           </button>
           <button onClick={() => setEditing(false)} disabled={submitting}
-            className="text-xs font-semibold px-2 py-0.5 rounded border border-gray-300 text-gray-600">
+            className="text-xs font-semibold px-2 py-0.5 rounded border border-penfix-border text-penfix-text-muted">
             Cancel
           </button>
         </div>

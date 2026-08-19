@@ -6,6 +6,7 @@ import { generateInviteAction, setStatusAction } from './actions'
 import { APPLICANT_STATUSES, formatSalaryRange } from '@/lib/applicants'
 
 const MAROON = '#4A0000'
+const MAROON_TEXT = '#D9BB6E'
 
 type Applicant = {
   id: string; full_name: string; email: string; mobile: string; city: string
@@ -75,17 +76,17 @@ export default function ApplicantsClient({
 
   return (
     <>
-      <div className="bg-white rounded-xl border shadow-sm p-6 mb-6">
-        <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON }}>Send a screening link</h3>
+      <div className="bg-penfix-card rounded-xl border shadow-sm p-6 mb-6">
+        <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON_TEXT }}>Send a screening link</h3>
         <form onSubmit={generate} className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 flex-1 min-w-[220px]">
-            <span className="text-xs text-gray-500">Applicant name / note</span>
+            <span className="text-xs text-penfix-text-muted">Applicant name / note</span>
             <input name="label" placeholder="e.g. Juan dela Cruz — layout artist"
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              className="border border-penfix-border rounded-lg px-3 py-2 text-sm" />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-gray-500">Expires in</span>
-            <select name="expires_days" defaultValue="14" className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <span className="text-xs text-penfix-text-muted">Expires in</span>
+            <select name="expires_days" defaultValue="14" className="border border-penfix-border rounded-lg px-3 py-2 text-sm">
               <option value="7">7 days</option>
               <option value="14">14 days</option>
               <option value="30">30 days</option>
@@ -110,16 +111,16 @@ export default function ApplicantsClient({
 
         {pendingInvites.length > 0 && (
           <div className="mt-5">
-            <p className="text-xs font-semibold text-gray-500 mb-2">Unused links ({pendingInvites.length})</p>
+            <p className="text-xs font-semibold text-penfix-text-muted mb-2">Unused links ({pendingInvites.length})</p>
             <div className="flex flex-col gap-1">
               {pendingInvites.map(i => (
-                <div key={i.token} className="flex items-center gap-3 text-xs text-gray-600 border-b border-gray-50 py-1.5 flex-wrap">
+                <div key={i.token} className="flex items-center gap-3 text-xs text-penfix-text-muted border-b border-penfix-border py-1.5 flex-wrap">
                   <span className="font-medium flex-1 min-w-[140px]">{i.label}</span>
-                  <span className="text-gray-400">
+                  <span className="text-penfix-text-muted">
                     {i.expires_at ? `expires ${fmt(i.expires_at)}` : 'no expiry'}
                   </span>
                   <button onClick={() => copy(`${origin}/applicant-screening/${i.token}`, i.token)}
-                    className="underline" style={{ color: MAROON }}>
+                    className="underline" style={{ color: MAROON_TEXT }}>
                     {copied === i.token ? 'Copied!' : 'Copy link'}
                   </button>
                 </div>
@@ -132,7 +133,7 @@ export default function ApplicantsClient({
       <div className="flex gap-2 mb-4 flex-wrap">
         {['All', ...APPLICANT_STATUSES].map(s => (
           <button key={s} onClick={() => setFilter(s)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${filter === s ? 'text-white' : 'text-gray-600 bg-white'}`}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${filter === s ? 'text-white' : 'text-penfix-text-muted bg-penfix-card'}`}
             style={filter === s ? { backgroundColor: MAROON, borderColor: MAROON } : {}}>
             {s} {s === 'All' ? `(${applicants.length})` : `(${applicants.filter(a => a.status === s).length})`}
           </button>
@@ -140,7 +141,7 @@ export default function ApplicantsClient({
       </div>
 
       {shown.length === 0 ? (
-        <div className="bg-white rounded-xl border shadow-sm p-12 text-center text-gray-400">
+        <div className="bg-penfix-card rounded-xl border shadow-sm p-12 text-center text-penfix-text-muted">
           No applications yet. Generate a link above and send it to an applicant.
         </div>
       ) : (
@@ -149,30 +150,30 @@ export default function ApplicantsClient({
             const exp = experienceByApplicant[a.id] ?? []
             const isOpen = open === a.id
             return (
-              <div key={a.id} className="bg-white rounded-xl border shadow-sm p-5">
+              <div key={a.id} className="bg-penfix-card rounded-xl border shadow-sm p-5">
                 <div className="flex justify-between items-start gap-4 flex-wrap">
                   <div className="flex-1 min-w-[200px]">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-bold" style={{ color: MAROON }}>{a.full_name}</h3>
+                      <h3 className="font-bold" style={{ color: MAROON_TEXT }}>{a.full_name}</h3>
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
                         style={{ color: STATUS_COLOR[a.status], backgroundColor: `${STATUS_COLOR[a.status]}1a` }}>
                         {a.status}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 capitalize">
+                    <p className="text-xs text-penfix-text-muted mt-1 capitalize">
                       {a.position_applied} · {a.team} · {a.city}
                     </p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-penfix-text-muted">
                       Expects {formatSalaryRange(a.expected_salary_min, a.expected_salary_max, a.expected_salary_basis)}
                       {a.years_experience !== null && ` · ${a.years_experience} yr experience`}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <select value={a.status} onChange={e => changeStatus(a.id, e.target.value)}
-                      className="border border-gray-300 rounded px-2 py-1 text-xs">
+                      className="border border-penfix-border rounded px-2 py-1 text-xs">
                       {APPLICANT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
-                    <button onClick={() => setOpen(isOpen ? null : a.id)} className="text-xs underline" style={{ color: MAROON }}>
+                    <button onClick={() => setOpen(isOpen ? null : a.id)} className="text-xs underline" style={{ color: MAROON_TEXT }}>
                       {isOpen ? 'Hide' : 'View'}
                     </button>
                   </div>
@@ -193,20 +194,20 @@ export default function ApplicantsClient({
                     </div>
 
                     {a.skills.length > 0 && (
-                      <div><b className="text-xs">Skills:</b> <span className="text-xs text-gray-600">{a.skills.join(', ')}</span></div>
+                      <div><b className="text-xs">Skills:</b> <span className="text-xs text-penfix-text-muted">{a.skills.join(', ')}</span></div>
                     )}
                     {a.software.length > 0 && (
                       <div className="flex flex-wrap gap-1 items-center">
                         <b className="text-xs">Software:</b>
                         {a.software.map(s => (
-                          <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">{s}</span>
+                          <span key={s} className="text-xs px-2 py-0.5 rounded-full bg-penfix-surface-muted text-penfix-text-muted">{s}</span>
                         ))}
                       </div>
                     )}
                     {a.portfolio_url && (
                       <div className="text-xs">
                         <b>Portfolio:</b>{' '}
-                        <a href={a.portfolio_url} target="_blank" rel="noopener noreferrer" className="underline break-all" style={{ color: MAROON }}>
+                        <a href={a.portfolio_url} target="_blank" rel="noopener noreferrer" className="underline break-all" style={{ color: MAROON_TEXT }}>
                           {a.portfolio_url}
                         </a>
                       </div>
@@ -215,20 +216,20 @@ export default function ApplicantsClient({
                     <div>
                       <b className="text-xs">Work experience</b>
                       {exp.length === 0 ? (
-                        <p className="text-xs text-gray-400 mt-1">None provided.</p>
+                        <p className="text-xs text-penfix-text-muted mt-1">None provided.</p>
                       ) : (
                         <div className="flex flex-col gap-2 mt-2">
                           {exp.map(e => (
-                            <div key={e.id} className="border border-gray-100 rounded-lg p-3 text-xs">
+                            <div key={e.id} className="border border-penfix-border rounded-lg p-3 text-xs">
                               <div className="flex justify-between flex-wrap gap-2">
                                 <span className="font-semibold">{e.position} — {e.company}</span>
-                                <span className="text-gray-400">{e.experience_type}</span>
+                                <span className="text-penfix-text-muted">{e.experience_type}</span>
                               </div>
-                              <div className="text-gray-500 mt-1">
+                              <div className="text-penfix-text-muted mt-1">
                                 {fmt(e.start_date)} – {e.is_current ? 'Present' : fmt(e.end_date)}
                                 {e.salary_rate !== null && ` · ₱${Number(e.salary_rate).toLocaleString('en-PH')} / ${e.salary_basis ?? ''}`}
                               </div>
-                              {e.reason_for_leaving && <div className="text-gray-500 mt-1">Left: {e.reason_for_leaving}</div>}
+                              {e.reason_for_leaving && <div className="text-penfix-text-muted mt-1">Left: {e.reason_for_leaving}</div>}
                             </div>
                           ))}
                         </div>
@@ -236,9 +237,9 @@ export default function ApplicantsClient({
                     </div>
 
                     {a.expectations && (
-                      <div className="text-xs"><b>Expectations from the company:</b> <span className="text-gray-600">{a.expectations}</span></div>
+                      <div className="text-xs"><b>Expectations from the company:</b> <span className="text-penfix-text-muted">{a.expectations}</span></div>
                     )}
-                    {a.notes && <div className="text-xs"><b>Notes:</b> <span className="text-gray-600">{a.notes}</span></div>}
+                    {a.notes && <div className="text-xs"><b>Notes:</b> <span className="text-penfix-text-muted">{a.notes}</span></div>}
                   </div>
                 )}
               </div>

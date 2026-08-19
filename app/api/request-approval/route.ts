@@ -31,6 +31,12 @@ export async function POST(req: NextRequest) {
   if (!table || !request_id || (decision !== 'Approved' && decision !== 'Rejected')) {
     return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
   }
+  // A disapproval must carry a reason — this is the authoritative check; the client
+  // (components/RequestApprovalActions.tsx) already blocks submitting without one, but
+  // that's UX only, not enforcement.
+  if (decision === 'Rejected' && !(reject_note && String(reject_note).trim())) {
+    return NextResponse.json({ error: 'A reason is required to disapprove.' }, { status: 400 })
+  }
 
   const supabase = getAdminClient()
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

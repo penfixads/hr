@@ -8,11 +8,12 @@ import {
 } from '@/lib/applicants'
 
 const MAROON = '#4A0000'
+const MAROON_TEXT = '#D9BB6E'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-6 mb-6">
-      <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON }}>{title}</h3>
+    <div className="bg-penfix-card rounded-xl border shadow-sm p-6 mb-6">
+      <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON_TEXT }}>{title}</h3>
       {children}
     </div>
   )
@@ -21,16 +22,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 function Field({ label, required, hint, children }: { label: string; required?: boolean; hint?: string; children: React.ReactNode }) {
   return (
     <label className="flex flex-col gap-1">
-      <span className="text-sm font-medium text-gray-700">
+      <span className="text-sm font-medium text-foreground">
         {label}{required && <span className="text-red-600"> *</span>}
       </span>
       {children}
-      {hint && <span className="text-xs text-gray-400">{hint}</span>}
+      {hint && <span className="text-xs text-penfix-text-muted">{hint}</span>}
     </label>
   )
 }
 
-const input = 'border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200'
+const input = 'border border-penfix-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200'
 
 export default function ApplicantScreeningForm({ token, label }: { token: string; label: string }) {
   const [experience, setExperience] = useState<ExperienceEntry[]>([emptyExperience()])
@@ -61,10 +62,10 @@ export default function ApplicantScreeningForm({ token, label }: { token: string
 
   if (done) {
     return (
-      <div className="max-w-2xl mx-auto bg-white rounded-xl border shadow-sm p-10 text-center">
+      <div className="max-w-2xl mx-auto bg-penfix-card rounded-xl border shadow-sm p-10 text-center">
         <p className="text-3xl mb-3">✓</p>
-        <h2 className="text-xl font-bold mb-2" style={{ color: MAROON }}>Thank you!</h2>
-        <p className="text-gray-600 text-sm">
+        <h2 className="text-xl font-bold mb-2" style={{ color: MAROON_TEXT }}>Thank you!</h2>
+        <p className="text-penfix-text-muted text-sm">
           Your information has been submitted to Penfix HR. We&apos;ll be in touch if your
           profile matches what we&apos;re looking for.
         </p>
@@ -74,7 +75,7 @@ export default function ApplicantScreeningForm({ token, label }: { token: string
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-sm text-penfix-text-muted mb-6">
         Hi{label ? ` ${label.split(' - ')[0]}` : ''} — please fill in the form below. Fields marked
         <span className="text-red-600"> *</span> are required. This link is for you only.
       </p>
@@ -116,11 +117,11 @@ export default function ApplicantScreeningForm({ token, label }: { token: string
             <input name="years_experience" inputMode="decimal" placeholder="e.g. 3" className={`${input} sm:w-40`} />
           </Field>
           <div>
-            <span className="text-sm font-medium text-gray-700">Software you can use</span>
+            <span className="text-sm font-medium text-foreground">Software you can use</span>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2 mt-2">
               {SOFTWARE_OPTIONS.map(s => (
-                <label key={s} className="flex items-center gap-2 text-sm text-gray-600">
-                  <input type="checkbox" name="software" value={s} className="rounded border-gray-300" />
+                <label key={s} className="flex items-center gap-2 text-sm text-penfix-text-muted">
+                  <input type="checkbox" name="software" value={s} className="rounded border-penfix-border" />
                   {s}
                 </label>
               ))}
@@ -130,14 +131,14 @@ export default function ApplicantScreeningForm({ token, label }: { token: string
       </Section>
 
       <Section title="4. Work Experience">
-        <p className="text-xs text-gray-500 mb-4">
+        <p className="text-xs text-penfix-text-muted mb-4">
           Include employment, freelance work, and internship/OJT. Leave blank if you have none yet.
         </p>
         <div className="flex flex-col gap-4">
           {experience.map((entry, i) => (
-            <div key={i} className="border border-gray-200 rounded-lg p-4">
+            <div key={i} className="border border-penfix-border rounded-lg p-4">
               <div className="flex justify-between items-center mb-3">
-                <span className="text-xs font-semibold text-gray-500">Entry {i + 1}</span>
+                <span className="text-xs font-semibold text-penfix-text-muted">Entry {i + 1}</span>
                 {experience.length > 1 && (
                   <button type="button" onClick={() => setExperience(prev => prev.filter((_, idx) => idx !== i))}
                     className="text-xs text-red-600 hover:underline">Remove</button>
@@ -173,11 +174,11 @@ export default function ApplicantScreeningForm({ token, label }: { token: string
                 <Field label="End date">
                   <input type="date" value={entry.end_date ?? ''} disabled={entry.is_current}
                     onChange={e => updateEntry(i, { end_date: e.target.value || null })}
-                    className={`${input} disabled:bg-gray-100 disabled:text-gray-400`} />
-                  <label className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                    className={`${input} disabled:bg-penfix-surface-muted disabled:text-penfix-text-muted`} />
+                  <label className="flex items-center gap-2 text-xs text-penfix-text-muted mt-1">
                     <input type="checkbox" checked={entry.is_current}
                       onChange={e => updateEntry(i, { is_current: e.target.checked, end_date: e.target.checked ? null : entry.end_date })}
-                      className="rounded border-gray-300" />
+                      className="rounded border-penfix-border" />
                     I currently work here
                   </label>
                 </Field>
@@ -247,7 +248,7 @@ export default function ApplicantScreeningForm({ token, label }: { token: string
         style={{ backgroundColor: MAROON }}>
         {submitting ? 'Submitting…' : 'Submit Application'}
       </button>
-      <p className="text-xs text-gray-400 text-center mt-3 mb-10">
+      <p className="text-xs text-penfix-text-muted text-center mt-3 mb-10">
         You can only submit this form once. Please review your answers before sending.
       </p>
     </form>

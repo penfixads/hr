@@ -8,7 +8,8 @@ import {
 } from '@/lib/assessment'
 
 const MAROON = '#4A0000'
-const input = 'border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200'
+const MAROON_TEXT = '#D9BB6E'
+const input = 'border border-penfix-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-200'
 
 // Redraws the Google Form's uploaded image as vector, so it stays sharp on a phone and the
 // deliberate error can be corrected in code rather than by re-uploading a PNG. The intended
@@ -25,7 +26,7 @@ function AlignmentGrid() {
   return (
     <svg
       viewBox="0 0 480 240"
-      className="w-full max-w-md border border-gray-200 rounded-lg bg-white"
+      className="w-full max-w-md border border-penfix-border rounded-lg bg-penfix-card"
       role="img"
       aria-label="A poster layout with a heading and four lines of text below it"
     >
@@ -44,9 +45,9 @@ function AlignmentGrid() {
 
 function Section({ title, intro, children }: { title: string; intro?: string; children: React.ReactNode }) {
   return (
-    <div className="bg-white rounded-xl border shadow-sm p-6 mb-6">
-      <h3 className="font-bold text-base mb-1 pb-2 border-b" style={{ color: MAROON }}>{title}</h3>
-      {intro && <p className="text-xs text-gray-500 mt-2 mb-4">{intro}</p>}
+    <div className="bg-penfix-card rounded-xl border shadow-sm p-6 mb-6">
+      <h3 className="font-bold text-base mb-1 pb-2 border-b" style={{ color: MAROON_TEXT }}>{title}</h3>
+      {intro && <p className="text-xs text-penfix-text-muted mt-2 mb-4">{intro}</p>}
       <div className={intro ? '' : 'mt-4'}>{children}</div>
     </div>
   )
@@ -65,15 +66,15 @@ function Ranking({ value, onChange }: { value: string[]; onChange: (next: string
   return (
     <ol className="flex flex-col gap-2">
       {value.map((item, i) => (
-        <li key={item} className="flex items-center gap-3 border border-gray-200 rounded-lg px-3 py-2">
-          <span className="text-xs font-bold text-gray-400 w-5 shrink-0">{i + 1}</span>
-          <span className="text-sm text-gray-700 flex-1">{item}</span>
+        <li key={item} className="flex items-center gap-3 border border-penfix-border rounded-lg px-3 py-2">
+          <span className="text-xs font-bold text-penfix-text-muted w-5 shrink-0">{i + 1}</span>
+          <span className="text-sm text-foreground flex-1">{item}</span>
           <button type="button" onClick={() => move(i, -1)} disabled={i === 0}
             aria-label={`Move ${item} up`}
-            className="text-xs px-2 py-1 rounded border border-gray-200 text-gray-600 disabled:opacity-30">▲</button>
+            className="text-xs px-2 py-1 rounded border border-penfix-border text-penfix-text-muted disabled:opacity-30">▲</button>
           <button type="button" onClick={() => move(i, 1)} disabled={i === value.length - 1}
             aria-label={`Move ${item} down`}
-            className="text-xs px-2 py-1 rounded border border-gray-200 text-gray-600 disabled:opacity-30">▼</button>
+            className="text-xs px-2 py-1 rounded border border-penfix-border text-penfix-text-muted disabled:opacity-30">▼</button>
         </li>
       ))}
     </ol>
@@ -136,10 +137,10 @@ export default function ApplicantAssessmentForm({
 
   if (done) {
     return (
-      <div className="max-w-2xl mx-auto bg-white rounded-xl border shadow-sm p-10 text-center">
+      <div className="max-w-2xl mx-auto bg-penfix-card rounded-xl border shadow-sm p-10 text-center">
         <p className="text-3xl mb-3">✓</p>
-        <h2 className="text-xl font-bold mb-2" style={{ color: MAROON }}>Thank you!</h2>
-        <p className="text-gray-600 text-sm">
+        <h2 className="text-xl font-bold mb-2" style={{ color: MAROON_TEXT }}>Thank you!</h2>
+        <p className="text-penfix-text-muted text-sm">
           Your assessment has been submitted to Penfix HR. We&apos;ll be in touch about the next
           step. Thank you for the time you gave this.
         </p>
@@ -150,9 +151,9 @@ export default function ApplicantAssessmentForm({
   function renderQuestion(q: Question, number: number) {
     const missing = showErrors && unanswered.includes(q.id)
     return (
-      <div key={q.id} id={`q-${q.id}`} className="py-4 border-b border-gray-100 last:border-0">
-        <p className="text-sm font-medium text-gray-800 mb-3 whitespace-pre-line">
-          <span className="text-gray-400 mr-2">{number}.</span>
+      <div key={q.id} id={`q-${q.id}`} className="py-4 border-b border-penfix-border last:border-0">
+        <p className="text-sm font-medium text-foreground mb-3 whitespace-pre-line">
+          <span className="text-penfix-text-muted mr-2">{number}.</span>
           {q.prompt}
           {(q.kind === 'choice' || q.kind === 'short') && <span className="text-red-600"> *</span>}
         </p>
@@ -163,7 +164,7 @@ export default function ApplicantAssessmentForm({
             <div className="flex flex-col gap-2">
               {q.choices.map(c => (
                 <label key={c.text}
-                  className="flex items-start gap-2.5 text-sm text-gray-700 cursor-pointer rounded-lg px-3 py-2 border border-gray-200 hover:bg-amber-50/40 has-[:checked]:border-amber-300 has-[:checked]:bg-amber-50">
+                  className="flex items-start gap-2.5 text-sm text-foreground cursor-pointer rounded-lg px-3 py-2 border border-penfix-border hover:bg-amber-50/40 has-[:checked]:border-amber-300 has-[:checked]:bg-amber-50">
                   <input type="radio" name={q.id} value={c.text}
                     checked={answers[q.id] === c.text}
                     onChange={() => set(q.id, c.text)}
@@ -211,11 +212,11 @@ export default function ApplicantAssessmentForm({
 
   return (
     <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-      <div className="bg-white rounded-xl border shadow-sm p-6 mb-6">
-        <h2 className="text-lg font-bold mb-1" style={{ color: MAROON }}>Penfix Assessment</h2>
-        <p className="text-sm text-gray-500">
+      <div className="bg-penfix-card rounded-xl border shadow-sm p-6 mb-6">
+        <h2 className="text-lg font-bold mb-1" style={{ color: MAROON_TEXT }}>Penfix Assessment</h2>
+        <p className="text-sm text-penfix-text-muted">
           Hi{label ? ` ${label.split(' - ')[0]}` : ''} — this assessment is for the{' '}
-          <strong className="text-gray-700">{role}</strong> role. There is no timer, but please
+          <strong className="text-foreground">{role}</strong> role. There is no timer, but please
           answer in one sitting: the link works once and your answers are only saved when you
           submit at the end.
         </p>
@@ -224,15 +225,15 @@ export default function ApplicantAssessmentForm({
       <Section title="Applicant Details">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-700">Full name<span className="text-red-600"> *</span></span>
+            <span className="text-sm font-medium text-foreground">Full name<span className="text-red-600"> *</span></span>
             <input name="full_name" required className={input} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-700">Email address<span className="text-red-600"> *</span></span>
+            <span className="text-sm font-medium text-foreground">Email address<span className="text-red-600"> *</span></span>
             <input type="email" name="email" required className={input} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-sm font-medium text-gray-700">Telephone number<span className="text-red-600"> *</span></span>
+            <span className="text-sm font-medium text-foreground">Telephone number<span className="text-red-600"> *</span></span>
             <input name="phone" required inputMode="tel" className={input} />
           </label>
         </div>
@@ -251,7 +252,7 @@ export default function ApplicantAssessmentForm({
         style={{ backgroundColor: MAROON }}>
         {submitting ? 'Submitting…' : 'Submit Assessment'}
       </button>
-      <p className="text-xs text-gray-400 text-center mt-3 mb-10">
+      <p className="text-xs text-penfix-text-muted text-center mt-3 mb-10">
         You can only submit this once. Please review your answers before sending.
       </p>
     </form>

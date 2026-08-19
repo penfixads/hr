@@ -5,6 +5,7 @@ import type { RequestsHistory } from '@/lib/employee-records'
 import { EmptyRow, StatusBadge, fmtDate, fmtSubmitted } from '@/components/EmployeeRecordSummary'
 
 const MAROON = '#4A0000'
+const MAROON_TEXT = '#D9BB6E'
 
 type RequestType = 'cashAdvances' | 'loans' | 'overtimes' | 'undertimes' | 'leaves'
 
@@ -50,7 +51,7 @@ export default function RequestsHistoryClient({ history }: { history: RequestsHi
             className="px-4 py-2 rounded-lg text-sm font-semibold transition"
             style={tab === t.key
               ? { backgroundColor: MAROON, color: 'white' }
-              : { backgroundColor: 'white', color: MAROON, border: `1px solid ${MAROON}` }}
+              : { backgroundColor: 'transparent', color: '#D9BB6E', border: '1px solid #C9A84C' }}
           >
             {t.label} <span className="opacity-70">({history[t.key].length})</span>
           </button>
@@ -60,7 +61,7 @@ export default function RequestsHistoryClient({ history }: { history: RequestsHi
       <div className="flex flex-wrap gap-3 items-center">
         <input
           type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
+          className="w-full sm:w-72 border border-penfix-border rounded-lg px-3 py-2 text-sm focus:outline-none"
         />
         {hasStatus && (
           <div className="flex gap-1">
@@ -69,7 +70,7 @@ export default function RequestsHistoryClient({ history }: { history: RequestsHi
                 className="px-3 py-1.5 rounded-full text-xs font-semibold transition"
                 style={statusFilter === s
                   ? { backgroundColor: MAROON, color: 'white' }
-                  : { backgroundColor: '#f3f4f6', color: '#4b5563' }}>
+                  : { backgroundColor: 'rgba(255,255,255,0.06)', color: '#C9BBAE' }}>
                 {s}
               </button>
             ))}
@@ -77,7 +78,7 @@ export default function RequestsHistoryClient({ history }: { history: RequestsHi
         )}
       </div>
 
-      <div className="bg-white rounded-xl border shadow-sm p-6">
+      <div className="bg-penfix-card rounded-xl border shadow-sm p-6">
         {filtered.length === 0 ? (
           <EmptyRow>No {TABS.find(t => t.key === tab)!.label.toLowerCase()} match this filter.</EmptyRow>
         ) : tab === 'cashAdvances' ? (
@@ -100,7 +101,7 @@ function CashAdvanceHistoryTable({ rows }: { rows: RequestsHistory['cashAdvances
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Employee</th>
           <th className="text-left py-2 px-3 font-medium">Date</th>
           <th className="text-right py-2 px-3 font-medium">Amount</th>
@@ -111,13 +112,13 @@ function CashAdvanceHistoryTable({ rows }: { rows: RequestsHistory['cashAdvances
       </thead>
       <tbody>
         {rows.map(r => (
-          <tr key={r.id} className="border-b border-gray-50">
-            <td className="py-2 pr-4 font-medium" style={{ color: MAROON }}>{r.employeeName}</td>
+          <tr key={r.id} className="border-b border-penfix-border">
+            <td className="py-2 pr-4 font-medium" style={{ color: MAROON_TEXT }}>{r.employeeName}</td>
             <td className="py-2 px-3">{fmtDate(r.request_date)}</td>
             <td className="py-2 px-3 text-right font-medium">₱{r.amount.toLocaleString()}</td>
             <td className="py-2 px-3 text-center"><StatusBadge status={r.status} /></td>
-            <td className="py-2 px-3 text-gray-600">{r.reason || '—'}</td>
-            <td className="py-2 pl-3 text-gray-500 text-xs">
+            <td className="py-2 px-3 text-penfix-text-muted">{r.reason || '—'}</td>
+            <td className="py-2 pl-3 text-penfix-text-muted text-xs">
               {r.resolved_at ? `${fmtSubmitted(r.resolved_at)}${r.approved_by ? ` by ${r.approved_by}` : ''}` : '—'}
               {r.reject_note && <div className="text-red-500">{r.reject_note}</div>}
             </td>
@@ -132,7 +133,7 @@ function LoanHistoryTable({ rows }: { rows: RequestsHistory['loans'] }) {
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Employee</th>
           <th className="text-left py-2 px-3 font-medium">Date</th>
           <th className="text-right py-2 px-3 font-medium">Amount</th>
@@ -144,14 +145,14 @@ function LoanHistoryTable({ rows }: { rows: RequestsHistory['loans'] }) {
       </thead>
       <tbody>
         {rows.map(r => (
-          <tr key={r.id} className="border-b border-gray-50">
-            <td className="py-2 pr-4 font-medium" style={{ color: MAROON }}>{r.employeeName}</td>
+          <tr key={r.id} className="border-b border-penfix-border">
+            <td className="py-2 pr-4 font-medium" style={{ color: MAROON_TEXT }}>{r.employeeName}</td>
             <td className="py-2 px-3">{fmtDate(r.request_date)}</td>
             <td className="py-2 px-3 text-right font-medium">₱{r.amount.toLocaleString()}</td>
             <td className="py-2 px-3 text-right">₱{r.payment_per_payday.toLocaleString()}</td>
             <td className="py-2 px-3 text-center"><StatusBadge status={r.status} /></td>
-            <td className="py-2 px-3 text-gray-600">{r.reason || '—'}</td>
-            <td className="py-2 pl-3 text-gray-500 text-xs">
+            <td className="py-2 px-3 text-penfix-text-muted">{r.reason || '—'}</td>
+            <td className="py-2 pl-3 text-penfix-text-muted text-xs">
               {r.resolved_at ? `${fmtSubmitted(r.resolved_at)}${r.approved_by ? ` by ${r.approved_by}` : ''}` : '—'}
               {r.reject_note && <div className="text-red-500">{r.reject_note}</div>}
             </td>
@@ -166,7 +167,7 @@ function OvertimeHistoryTable({ rows }: { rows: RequestsHistory['overtimes'] }) 
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Employee</th>
           <th className="text-left py-2 px-3 font-medium">Date</th>
           <th className="text-left py-2 px-3 font-medium">Time</th>
@@ -176,12 +177,12 @@ function OvertimeHistoryTable({ rows }: { rows: RequestsHistory['overtimes'] }) 
       </thead>
       <tbody>
         {rows.map(r => (
-          <tr key={r.id} className="border-b border-gray-50">
-            <td className="py-2 pr-4 font-medium" style={{ color: MAROON }}>{r.employeeName}</td>
+          <tr key={r.id} className="border-b border-penfix-border">
+            <td className="py-2 pr-4 font-medium" style={{ color: MAROON_TEXT }}>{r.employeeName}</td>
             <td className="py-2 px-3">{fmtDate(r.ot_date)}{r.filed_late && <span className="text-amber-600 text-xs ml-1">(late)</span>}</td>
             <td className="py-2 px-3">{fmtTime(r.start_time)} – {fmtTime(r.end_time)}</td>
-            <td className="py-2 px-3 text-gray-600">{r.reason}</td>
-            <td className="py-2 pl-3 text-right text-gray-500 text-xs">{fmtSubmitted(r.submitted_at)}</td>
+            <td className="py-2 px-3 text-penfix-text-muted">{r.reason}</td>
+            <td className="py-2 pl-3 text-right text-penfix-text-muted text-xs">{fmtSubmitted(r.submitted_at)}</td>
           </tr>
         ))}
       </tbody>
@@ -193,7 +194,7 @@ function UndertimeHistoryTable({ rows }: { rows: RequestsHistory['undertimes'] }
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Employee</th>
           <th className="text-left py-2 px-3 font-medium">Date</th>
           <th className="text-left py-2 px-3 font-medium">Time In</th>
@@ -204,13 +205,13 @@ function UndertimeHistoryTable({ rows }: { rows: RequestsHistory['undertimes'] }
       </thead>
       <tbody>
         {rows.map(r => (
-          <tr key={r.id} className="border-b border-gray-50">
-            <td className="py-2 pr-4 font-medium" style={{ color: MAROON }}>{r.employeeName}</td>
+          <tr key={r.id} className="border-b border-penfix-border">
+            <td className="py-2 pr-4 font-medium" style={{ color: MAROON_TEXT }}>{r.employeeName}</td>
             <td className="py-2 px-3">{fmtDate(r.undertime_date)}</td>
             <td className="py-2 px-3">{r.time_in ? fmtTime(r.time_in) : '—'}</td>
             <td className="py-2 px-3">{r.time_out ? fmtTime(r.time_out) : '—'}</td>
-            <td className="py-2 px-3 text-gray-600">{r.reason}</td>
-            <td className="py-2 pl-3 text-right text-gray-500 text-xs">{fmtSubmitted(r.submitted_at)}</td>
+            <td className="py-2 px-3 text-penfix-text-muted">{r.reason}</td>
+            <td className="py-2 pl-3 text-right text-penfix-text-muted text-xs">{fmtSubmitted(r.submitted_at)}</td>
           </tr>
         ))}
       </tbody>
@@ -222,7 +223,7 @@ function LeaveHistoryTable({ rows }: { rows: RequestsHistory['leaves'] }) {
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Employee</th>
           <th className="text-left py-2 px-3 font-medium">Type</th>
           <th className="text-left py-2 px-3 font-medium">Dates</th>
@@ -233,13 +234,13 @@ function LeaveHistoryTable({ rows }: { rows: RequestsHistory['leaves'] }) {
       </thead>
       <tbody>
         {rows.map(r => (
-          <tr key={r.id} className="border-b border-gray-50">
-            <td className="py-2 pr-4 font-medium" style={{ color: MAROON }}>{r.employeeName}</td>
+          <tr key={r.id} className="border-b border-penfix-border">
+            <td className="py-2 pr-4 font-medium" style={{ color: MAROON_TEXT }}>{r.employeeName}</td>
             <td className="py-2 px-3">{r.leave_type}{r.filed_late && <span className="text-amber-600 text-xs ml-1">(late)</span>}</td>
             <td className="py-2 px-3">{fmtDate(r.start_date)} – {fmtDate(r.end_date)}</td>
             <td className="py-2 px-3 text-center">{r.days_requested}</td>
-            <td className="py-2 px-3 text-gray-600">{r.reason || '—'}</td>
-            <td className="py-2 pl-3 text-right text-gray-500 text-xs">{fmtSubmitted(r.submitted_at)}</td>
+            <td className="py-2 px-3 text-penfix-text-muted">{r.reason || '—'}</td>
+            <td className="py-2 pl-3 text-right text-penfix-text-muted text-xs">{fmtSubmitted(r.submitted_at)}</td>
           </tr>
         ))}
       </tbody>

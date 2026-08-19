@@ -29,13 +29,6 @@ function avgScore(emp: Employee) {
   return computeSkillsScore(emp.team, emp.skills_self_rating, emp.skills_boss_rating).overall
 }
 
-function scoreColor(score: number) {
-  if (score >= 4) return '#16a34a'
-  if (score >= 3) return '#ca8a04'
-  if (score >= 2) return '#dc2626'
-  return '#6b7280'
-}
-
 export default function AdminPage() {
   const [employees, setEmployees] = useState<Employee[]>([])
   const [loading, setLoading] = useState(false)
@@ -122,13 +115,13 @@ export default function AdminPage() {
         {/* Overview cards */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Total Submissions', value: employees.length, color: '#4A0000' },
-            { label: 'Creative Team', value: totalCreative, color: '#6B0000' },
-            { label: 'Production Team', value: totalProduction, color: '#A8872C' },
+            { label: 'Total Submissions', value: employees.length, color: '#F3E7D6' },
+            { label: 'Creative Team', value: totalCreative, color: '#D9BB6E' },
+            { label: 'Production Team', value: totalProduction, color: '#C9A84C' },
           ].map(({ label, value, color }) => (
-            <div key={label} className="bg-white rounded-xl shadow-sm border p-5 text-center">
+            <div key={label} className="bg-penfix-card rounded-xl shadow-sm border border-penfix-gold/40 p-5 text-center">
               <div className="text-3xl font-bold" style={{ color }}>{value}</div>
-              <div className="text-sm text-gray-500 mt-1">{label}</div>
+              <div className="text-sm text-penfix-text-muted mt-1">{label}</div>
             </div>
           ))}
         </div>
@@ -138,45 +131,53 @@ export default function AdminPage() {
           <div className="flex gap-3 flex-wrap">
             <input
               type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm w-52 focus:outline-none"
+              className="border border-penfix-gold/40 rounded-lg px-3 py-2 text-sm w-52 focus:outline-none"
             />
             <select value={filterTeam} onChange={e => setFilterTeam(e.target.value)}
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              className="border border-penfix-gold/40 rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option>All</option>
               <option>Creative Team</option>
               <option>Production Team</option>
             </select>
           </div>
           <div className="flex gap-3">
+            <Link href="/" title="Home"
+              className="p-2 rounded-lg transition hover:opacity-90"
+              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D9BB6E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9.5 12 3l9 6.5" />
+                <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
+              </svg>
+            </Link>
             <Link href="/admin/attendance"
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#4A0000' }}>
+              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
               Attendance
             </Link>
             <Link href="/admin/requests"
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#4A0000' }}>
+              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
               Requests
             </Link>
             <Link href="/admin/history"
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#4A0000' }}>
+              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
               History
             </Link>
             <button onClick={exportCSV}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-              style={{ backgroundColor: '#C9A84C' }}>
+              style={{ backgroundColor: '#C9A84C', border: '1px solid #C9A84C' }}>
               ↓ Export CSV
             </button>
           </div>
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
+        <div className="bg-penfix-card rounded-xl shadow-sm border border-penfix-gold/40 overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-gray-400">Loading submissions...</div>
+            <div className="p-12 text-center text-penfix-text-muted">Loading submissions...</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-gray-400">No submissions found.</div>
+            <div className="p-12 text-center text-penfix-text-muted">No submissions found.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -189,7 +190,7 @@ export default function AdminPage() {
                       { label: 'Status', key: null },
                       { label: 'Submitted', key: 'submitted_at' as SortKey },
                       { label: 'Avg Score', key: 'avg_score' as SortKey },
-                      { label: 'Raise', key: null },
+                      { label: 'INTERPRETATION', key: null },
                       { label: 'Action', key: null },
                     ].map(({ label, key }) => (
                       <th key={label}
@@ -205,7 +206,7 @@ export default function AdminPage() {
                     const score = avgScore(emp)
                     const raise = raiseLabel(score)
                     return (
-                      <tr key={emp.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <tr key={emp.id} className={i % 2 === 0 ? 'bg-penfix-card' : 'bg-penfix-surface-muted'}>
                         <td className="px-4 py-3 font-medium">{emp.full_name}</td>
                         <td className="px-4 py-3">
                           <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
@@ -216,28 +217,26 @@ export default function AdminPage() {
                             {emp.team === 'creative' ? 'Creative' : 'Production'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-gray-600">{emp.position}</td>
-                        <td className="px-4 py-3 text-gray-600">{emp.employment_status}</td>
-                        <td className="px-4 py-3 text-gray-500 text-xs">
+                        <td className="px-4 py-3 text-penfix-text-muted">{emp.position}</td>
+                        <td className="px-4 py-3 text-penfix-text-muted">{emp.employment_status}</td>
+                        <td className="px-4 py-3 text-penfix-text-muted text-xs">
                           {new Date(emp.submitted_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
                         <td className="px-4 py-3">
                           {score > 0 ? (
-                            <span className="font-bold text-base" style={{ color: scoreColor(score) }}>
-                              {score.toFixed(1)}
-                            </span>
-                          ) : <span className="text-gray-400 text-xs">Pending</span>}
+                            <span className="font-bold text-base">{score.toFixed(1)}</span>
+                          ) : <span className="text-penfix-text-muted text-xs">Pending</span>}
                         </td>
                         <td className="px-4 py-3">
                           {score > 0 ? (
-                            <span className="text-xs font-semibold" style={{ color: raise.color }}>{raise.label}</span>
-                          ) : <span className="text-gray-400 text-xs">—</span>}
+                            <span className="text-xs font-semibold">{raise.label}</span>
+                          ) : <span className="text-penfix-text-muted text-xs">—</span>}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <Link href={`/admin/employee/${emp.id}`} title="View record"
                               className="p-1.5 rounded-lg text-white transition hover:opacity-80"
-                              style={{ backgroundColor: '#4A0000' }}>
+                              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
                                 <circle cx="12" cy="12" r="3" />
@@ -245,14 +244,14 @@ export default function AdminPage() {
                             </Link>
                             <Link href={`/admin/assess?employee=${emp.id}`} title="Evaluate skills"
                               className="p-1.5 rounded-lg text-white transition hover:opacity-80"
-                              style={{ backgroundColor: '#C9A84C' }}>
+                              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 17 5.5 21 7.5 13.5 2 9 9 9" />
                               </svg>
                             </Link>
                             <button onClick={() => deleteEmployee(emp)} title="Delete record"
                               className="p-1.5 rounded-lg text-white transition hover:opacity-80"
-                              style={{ backgroundColor: '#dc2626' }}>
+                              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="3 6 5 6 21 6" />
                                 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />

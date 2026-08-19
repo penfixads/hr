@@ -79,22 +79,22 @@ export default function QuarterlyEvaluationForm() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center px-6">
         <div className="text-6xl mb-6">✅</div>
-        <h2 className="text-2xl font-bold mb-3" style={{ color: '#4A0000' }}>Evaluation Submitted!</h2>
-        <p className="text-gray-600 text-lg max-w-md">
+        <h2 className="text-2xl font-bold mb-3" style={{ color: '#D9BB6E' }}>Evaluation Submitted!</h2>
+        <p className="text-penfix-text-muted text-lg max-w-md">
           Thank you, {selected?.full_name} — your {quarter} {year} self-evaluation has been recorded.
         </p>
       </div>
     )
   }
 
-  const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+  const inputClass = "w-full border border-penfix-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
   const focusStyle = { '--tw-ring-color': '#C9A84C' } as React.CSSProperties
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1"
+  const labelClass = "block text-sm font-medium text-foreground mb-1"
 
   return (
     <div className="max-w-2xl mx-auto w-full">
-      <h3 className="text-lg font-bold mb-1" style={{ color: '#4A0000' }}>15-Point Quarterly Self-Evaluation</h3>
-      <p className="text-sm text-gray-500 mb-6">
+      <h3 className="text-lg font-bold mb-1" style={{ color: '#D9BB6E' }}>15-Point Quarterly Self-Evaluation</h3>
+      <p className="text-sm text-penfix-text-muted mb-6">
         Same 15 qualifications used in Penfix&apos;s manual quarterly evaluation. Pick yourself and
         the quarter, then rate yourself honestly from 1 (needs guidance) to 10 (excellent).
       </p>
@@ -110,14 +110,14 @@ export default function QuarterlyEvaluationForm() {
             disabled={loadingEmployees}
           />
           {!selected && search && (
-            <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-56 overflow-y-auto shadow-lg">
+            <div className="absolute z-10 w-full bg-penfix-card border border-penfix-border rounded-lg mt-1 max-h-56 overflow-y-auto shadow-lg">
               {filteredEmployees.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-gray-400">No employee found.</div>
+                <div className="px-3 py-2 text-sm text-penfix-text-muted">No employee found.</div>
               ) : filteredEmployees.map(e => (
                 <button key={e.id} type="button"
                   onClick={() => selectEmployee(e)}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0">
-                  {e.full_name} <span className="text-gray-400 text-xs">({e.team === 'creative' ? 'Creative' : 'Production'})</span>
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-penfix-surface-muted border-b border-penfix-border last:border-0">
+                  {e.full_name} <span className="text-penfix-text-muted text-xs">({e.team === 'creative' ? 'Creative' : 'Production'})</span>
                 </button>
               ))}
             </div>
@@ -139,18 +139,18 @@ export default function QuarterlyEvaluationForm() {
 
       {selected && (
         <>
-          <div className="bg-white rounded-lg border p-4 mb-6 flex flex-wrap items-center gap-4 shadow-sm">
+          <div className="bg-penfix-card rounded-lg border p-4 mb-6 flex flex-wrap items-center gap-4 shadow-sm">
             <div>
-              <div className="text-xs text-gray-500">Total</div>
-              <div className="text-lg font-bold" style={{ color: '#4A0000' }}>{total} / 150</div>
+              <div className="text-xs text-penfix-text-muted">Total</div>
+              <div className="text-lg font-bold" style={{ color: '#D9BB6E' }}>{total} / 150</div>
             </div>
             <div>
-              <div className="text-xs text-gray-500">Percentage</div>
-              <div className="text-lg font-bold" style={{ color: '#4A0000' }}>{percentage.toFixed(1)}%</div>
+              <div className="text-xs text-penfix-text-muted">Percentage</div>
+              <div className="text-lg font-bold" style={{ color: '#D9BB6E' }}>{percentage.toFixed(1)}%</div>
             </div>
             {total > 0 && (
               <div>
-                <div className="text-xs text-gray-500">Rating</div>
+                <div className="text-xs text-penfix-text-muted">Rating</div>
                 <div className="text-lg font-bold" style={{ color: band.color }}>{band.label}</div>
               </div>
             )}
@@ -158,8 +158,8 @@ export default function QuarterlyEvaluationForm() {
 
           <div className="space-y-4 mb-6">
             {items.map((item, i) => (
-              <div key={item} className="flex flex-col gap-2 p-3 bg-white rounded-lg border border-gray-100">
-                <span className="text-sm text-gray-700"><span className="text-gray-400">{i + 1}.</span> {item}</span>
+              <div key={item} className="flex flex-col gap-2 p-3 bg-penfix-card rounded-lg border border-penfix-border">
+                <span className="text-sm text-foreground"><span className="text-penfix-text-muted">{i + 1}.</span> {item}</span>
                 <NumberRating value={ratings[item] || 0} onChange={val => setRating(item, val)} />
               </div>
             ))}
@@ -169,7 +169,7 @@ export default function QuarterlyEvaluationForm() {
             <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
           )}
 
-          <div className="flex justify-end pt-4 border-t border-gray-200">
+          <div className="flex justify-end pt-4 border-t border-penfix-border">
             <button onClick={handleSubmit} disabled={submitting}
               className="px-8 py-2 rounded-lg font-semibold text-sm text-white transition-colors hover:opacity-90 disabled:opacity-60"
               style={{ backgroundColor: '#C9A84C' }}>

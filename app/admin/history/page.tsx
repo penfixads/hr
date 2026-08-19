@@ -18,12 +18,12 @@ export default async function AdminHistoryPage() {
       <main className="flex-1 px-4 py-8 max-w-5xl mx-auto w-full">
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="text-2xl font-bold" style={{ color: '#4A0000' }}>Request History</h2>
-            <p className="text-sm text-gray-500 mt-1">
+            <h2 className="text-2xl font-bold" style={{ color: '#D9BB6E' }}>Request History</h2>
+            <p className="text-sm text-penfix-text-muted mt-1">
               Every Loan, Cash Advance, Overtime, Undertime, and Leave filing — all employees, no pay-period limit.
             </p>
           </div>
-          <Link href="/admin" className="text-sm hover:underline" style={{ color: '#4A0000' }}>← Back to Dashboard</Link>
+          <Link href="/admin" className="text-sm hover:underline" style={{ color: '#D9BB6E' }}>← Back to Dashboard</Link>
         </div>
 
         <RequestsHistoryClient history={history} />

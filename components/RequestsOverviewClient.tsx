@@ -6,16 +6,16 @@ import type { RequestsOverviewEmployee, OvertimeRow } from '@/lib/employee-recor
 import { Card, EmptyRow, StatusBadge, fmtDate, fmtSubmitted } from '@/components/EmployeeRecordSummary'
 import RequestApprovalActions from '@/components/RequestApprovalActions'
 
-const inputClass = "border border-gray-300 rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-1 focus:ring-penfix-gold"
+const inputClass = "border border-penfix-border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-1 focus:ring-penfix-gold"
 
-const MAROON = '#4A0000'
+const MAROON = '#D9BB6E'
 
 function LoanTable({ loans }: { loans: RequestsOverviewEmployee['loans'] }) {
   if (loans.length === 0) return <EmptyRow>No loan requests this period.</EmptyRow>
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Date</th>
           <th className="text-right py-2 px-3 font-medium">Amount</th>
           <th className="text-right py-2 px-3 font-medium">Per Payday</th>
@@ -26,12 +26,12 @@ function LoanTable({ loans }: { loans: RequestsOverviewEmployee['loans'] }) {
       </thead>
       <tbody>
         {loans.map(l => (
-          <tr key={l.id} className="border-b border-gray-50">
+          <tr key={l.id} className="border-b border-penfix-border">
             <td className="py-2 pr-4">{fmtDate(l.request_date)}</td>
             <td className="py-2 px-3 text-right font-medium">₱{l.amount.toLocaleString()}</td>
             <td className="py-2 px-3 text-right">₱{l.payment_per_payday.toLocaleString()}</td>
             <td className="py-2 px-3 text-center"><StatusBadge status={l.status} /></td>
-            <td className="py-2 px-3 text-gray-600">{l.reason || '—'}</td>
+            <td className="py-2 px-3 text-penfix-text-muted">{l.reason || '—'}</td>
             <td className="py-2 pl-3"><RequestApprovalActions requestId={l.id} requestType="loan" status={l.status} /></td>
           </tr>
         ))}
@@ -45,7 +45,7 @@ function CashAdvanceTable({ cashAdvances }: { cashAdvances: RequestsOverviewEmpl
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Date</th>
           <th className="text-right py-2 px-3 font-medium">Amount</th>
           <th className="text-center py-2 px-3 font-medium">Status</th>
@@ -55,11 +55,11 @@ function CashAdvanceTable({ cashAdvances }: { cashAdvances: RequestsOverviewEmpl
       </thead>
       <tbody>
         {cashAdvances.map(c => (
-          <tr key={c.id} className="border-b border-gray-50">
+          <tr key={c.id} className="border-b border-penfix-border">
             <td className="py-2 pr-4">{fmtDate(c.request_date)}</td>
             <td className="py-2 px-3 text-right font-medium">₱{c.amount.toLocaleString()}</td>
             <td className="py-2 px-3 text-center"><StatusBadge status={c.status} /></td>
-            <td className="py-2 px-3 text-gray-600">{c.reason || '—'}</td>
+            <td className="py-2 px-3 text-penfix-text-muted">{c.reason || '—'}</td>
             <td className="py-2 pl-3"><RequestApprovalActions requestId={c.id} requestType="cash_advance" status={c.status} /></td>
           </tr>
         ))}
@@ -117,12 +117,12 @@ function OvertimeEditRow({ overtime, onDone }: { overtime: OvertimeRow; onDone: 
   }
 
   return (
-    <tr className="border-b border-gray-50 bg-amber-50/40">
+    <tr className="border-b border-penfix-border bg-amber-50/40">
       <td className="py-2 pr-4 align-top"><input type="date" className={inputClass} value={otDate} onChange={e => setOtDate(e.target.value)} /></td>
       <td className="py-2 px-3 align-top">
         <div className="flex items-center gap-1">
           <input type="time" className={inputClass} value={startTime} onChange={e => setStartTime(e.target.value)} />
-          <span className="text-gray-400">–</span>
+          <span className="text-penfix-text-muted">–</span>
           <input type="time" className={inputClass} value={endTime} onChange={e => setEndTime(e.target.value)} />
         </div>
       </td>
@@ -134,7 +134,7 @@ function OvertimeEditRow({ overtime, onDone }: { overtime: OvertimeRow; onDone: 
             {saving ? 'Saving...' : '✓ Save'}
           </button>
           <button onClick={onDone} disabled={saving}
-            className="text-xs font-semibold px-2 py-1 rounded border border-gray-300 text-gray-600">
+            className="text-xs font-semibold px-2 py-1 rounded border border-penfix-border text-penfix-text-muted">
             ✕ Cancel
           </button>
         </div>
@@ -183,7 +183,7 @@ function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['ove
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Date</th>
           <th className="text-left py-2 px-3 font-medium">Time</th>
           <th className="text-left py-2 px-3 font-medium">Reason</th>
@@ -195,15 +195,15 @@ function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['ove
           editingId === o.id ? (
             <OvertimeEditRow key={o.id} overtime={o} onDone={() => setEditingId(null)} />
           ) : (
-            <tr key={o.id} className="border-b border-gray-50">
+            <tr key={o.id} className="border-b border-penfix-border">
               <td className="py-2 pr-4 font-medium">{fmtDate(o.ot_date)}{o.filed_late && <span className="text-amber-600 text-xs ml-1">(late)</span>}</td>
               <td className="py-2 px-3">{o.start_time} – {o.end_time}</td>
-              <td className="py-2 px-3 text-gray-600">{o.reason}</td>
+              <td className="py-2 px-3 text-penfix-text-muted">{o.reason}</td>
               <td className="py-2 pl-3 text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <span className="text-gray-500 text-xs">{fmtSubmitted(o.submitted_at)}</span>
+                  <span className="text-penfix-text-muted text-xs">{fmtSubmitted(o.submitted_at)}</span>
                   <button onClick={() => setEditingId(o.id)} title="Edit"
-                    className="text-xs font-semibold px-2 py-1 rounded border border-gray-300 text-gray-600 hover:bg-gray-50">
+                    className="text-xs font-semibold px-2 py-1 rounded border border-penfix-border text-penfix-text-muted hover:bg-penfix-surface-muted">
                     ✎ Edit
                   </button>
                   <DeleteOvertimeButton requestId={o.id} />
@@ -215,7 +215,7 @@ function OvertimeTable({ overtimes }: { overtimes: RequestsOverviewEmployee['ove
       </tbody>
       <tfoot>
         <tr>
-          <td className="pt-2 pr-4 text-xs text-gray-500" colSpan={4}>
+          <td className="pt-2 pr-4 text-xs text-penfix-text-muted" colSpan={4}>
             Total: <span className="font-semibold" style={{ color: MAROON }}>{formatOvertimeHours(totalMinutes)}</span>
           </td>
         </tr>
@@ -229,7 +229,7 @@ function LeaveTable({ leaves }: { leaves: RequestsOverviewEmployee['leaves'] }) 
   return (
     <table className="w-full text-sm">
       <thead>
-        <tr className="text-xs text-gray-500 border-b">
+        <tr className="text-xs text-penfix-text-muted border-b">
           <th className="text-left py-2 pr-4 font-medium">Type</th>
           <th className="text-left py-2 px-3 font-medium">Dates</th>
           <th className="text-center py-2 px-3 font-medium">Days</th>
@@ -239,12 +239,12 @@ function LeaveTable({ leaves }: { leaves: RequestsOverviewEmployee['leaves'] }) 
       </thead>
       <tbody>
         {leaves.map(l => (
-          <tr key={l.id} className="border-b border-gray-50">
+          <tr key={l.id} className="border-b border-penfix-border">
             <td className="py-2 pr-4 font-medium">{l.leave_type}{l.filed_late && <span className="text-amber-600 text-xs ml-1">(late)</span>}</td>
             <td className="py-2 px-3">{fmtDate(l.start_date)} – {fmtDate(l.end_date)}</td>
             <td className="py-2 px-3 text-center">{l.days_requested}</td>
-            <td className="py-2 px-3 text-gray-600">{l.reason || '—'}</td>
-            <td className="py-2 pl-3 text-right text-gray-500 text-xs">{fmtSubmitted(l.submitted_at)}</td>
+            <td className="py-2 px-3 text-penfix-text-muted">{l.reason || '—'}</td>
+            <td className="py-2 pl-3 text-right text-penfix-text-muted text-xs">{fmtSubmitted(l.submitted_at)}</td>
           </tr>
         ))}
       </tbody>
@@ -268,17 +268,17 @@ export default function RequestsOverviewClient({ entries }: { entries: RequestsO
       <div className="flex flex-wrap items-center gap-4 mb-4">
         <input
           type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)}
-          className="w-full sm:w-72 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none"
+          className="w-full sm:w-72 border border-penfix-border rounded-lg px-3 py-2 text-sm focus:outline-none"
         />
         {totalOvertimeMinutes > 0 && (
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-penfix-text-muted">
             Total Overtime{search && ' (matching search)'}: <span className="font-semibold" style={{ color: MAROON }}>{formatOvertimeHours(totalOvertimeMinutes)}</span>
           </span>
         )}
       </div>
 
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border shadow-sm p-12 text-center text-gray-400">
+        <div className="bg-penfix-card rounded-xl border shadow-sm p-12 text-center text-penfix-text-muted">
           {entries.length === 0 ? 'No cash advance, loan, overtime, or leave requests this pay period.' : 'No employees found.'}
         </div>
       ) : (
@@ -287,11 +287,11 @@ export default function RequestsOverviewClient({ entries }: { entries: RequestsO
             const pendingCount = entry.cashAdvances.filter(c => c.status === 'Pending').length
               + entry.loans.filter(l => l.status === 'Pending').length
             return (
-              <details key={entry.employeeId} open className="bg-white rounded-xl border shadow-sm p-6 group">
+              <details key={entry.employeeId} open className="bg-penfix-card rounded-xl border shadow-sm p-6 group">
                 <summary className="flex items-center justify-between cursor-pointer list-none mb-4 pb-2 border-b">
                   <div className="flex items-center gap-3 flex-wrap">
                     <h3 className="font-bold text-base" style={{ color: MAROON }}>{entry.employeeName}</h3>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <div className="flex items-center gap-2 text-xs text-penfix-text-muted">
                       {entry.cashAdvances.length > 0 && <span>{countLabel(entry.cashAdvances.length, 'cash advance')}</span>}
                       {entry.loans.length > 0 && <span>{countLabel(entry.loans.length, 'loan')}</span>}
                       {entry.overtimes.length > 0 && (
@@ -308,7 +308,7 @@ export default function RequestsOverviewClient({ entries }: { entries: RequestsO
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-gray-400 transition-transform group-open:rotate-180">▾</span>
+                  <span className="text-xs text-penfix-text-muted transition-transform group-open:rotate-180">▾</span>
                 </summary>
 
                 {entry.cashAdvances.length > 0 && (

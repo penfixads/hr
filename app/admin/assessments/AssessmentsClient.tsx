@@ -7,6 +7,7 @@ import { generateAssessmentInviteAction } from './actions'
 import { ASSESSMENT_ROLES, RUBRIC_CRITERIA, scorePercent } from '@/lib/assessment'
 
 const MAROON = '#4A0000'
+const MAROON_TEXT = '#D9BB6E'
 
 type Assessment = {
   id: string; full_name: string; email: string; phone: string; role: string
@@ -60,24 +61,24 @@ export default function AssessmentsClient({
 
   return (
     <>
-      <div className="bg-white rounded-xl border shadow-sm p-6 mb-6">
-        <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON }}>Send an assessment link</h3>
+      <div className="bg-penfix-card rounded-xl border shadow-sm p-6 mb-6">
+        <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON_TEXT }}>Send an assessment link</h3>
         <form onSubmit={generate} className="flex flex-wrap items-end gap-3">
           <label className="flex flex-col gap-1 flex-1 min-w-[200px]">
-            <span className="text-xs text-gray-500">Applicant name / note</span>
+            <span className="text-xs text-penfix-text-muted">Applicant name / note</span>
             <input name="label" placeholder="e.g. Juan dela Cruz — layout artist"
-              className="border border-gray-300 rounded-lg px-3 py-2 text-sm" />
+              className="border border-penfix-border rounded-lg px-3 py-2 text-sm" />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-gray-500">Role being tested</span>
-            <select name="role" defaultValue="" className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <span className="text-xs text-penfix-text-muted">Role being tested</span>
+            <select name="role" defaultValue="" className="border border-penfix-border rounded-lg px-3 py-2 text-sm">
               <option value="" disabled>Select…</option>
               {ASSESSMENT_ROLES.map(r => <option key={r} value={r}>{r}</option>)}
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-gray-500">Expires in</span>
-            <select name="expires_days" defaultValue="14" className="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+            <span className="text-xs text-penfix-text-muted">Expires in</span>
+            <select name="expires_days" defaultValue="14" className="border border-penfix-border rounded-lg px-3 py-2 text-sm">
               <option value="7">7 days</option>
               <option value="14">14 days</option>
               <option value="30">30 days</option>
@@ -89,7 +90,7 @@ export default function AssessmentsClient({
             {creating ? 'Generating…' : 'Generate link'}
           </button>
         </form>
-        <p className="text-xs text-gray-400 mt-3">
+        <p className="text-xs text-penfix-text-muted mt-3">
           The role is fixed on the link — the applicant cannot change it, and it decides which
           skills module they sit.
         </p>
@@ -106,15 +107,15 @@ export default function AssessmentsClient({
 
         {pendingInvites.length > 0 && (
           <div className="mt-5">
-            <p className="text-xs font-semibold text-gray-500 mb-2">Unused links ({pendingInvites.length})</p>
+            <p className="text-xs font-semibold text-penfix-text-muted mb-2">Unused links ({pendingInvites.length})</p>
             <div className="flex flex-col gap-1">
               {pendingInvites.map(i => (
-                <div key={i.token} className="flex items-center gap-3 text-xs text-gray-600 border-b border-gray-50 py-1.5 flex-wrap">
+                <div key={i.token} className="flex items-center gap-3 text-xs text-penfix-text-muted border-b border-penfix-border py-1.5 flex-wrap">
                   <span className="font-medium flex-1 min-w-[140px]">{i.label}</span>
-                  <span className="text-gray-400">{i.role}</span>
-                  <span className="text-gray-400">{i.expires_at ? `expires ${fmt(i.expires_at)}` : 'no expiry'}</span>
+                  <span className="text-penfix-text-muted">{i.role}</span>
+                  <span className="text-penfix-text-muted">{i.expires_at ? `expires ${fmt(i.expires_at)}` : 'no expiry'}</span>
                   <button onClick={() => copy(`${origin}/applicant-assessment/${i.token}`, i.token)}
-                    className="underline" style={{ color: MAROON }}>
+                    className="underline" style={{ color: MAROON_TEXT }}>
                     {copied === i.token ? 'Copied!' : 'Copy link'}
                   </button>
                 </div>
@@ -127,7 +128,7 @@ export default function AssessmentsClient({
       <div className="flex gap-2 mb-4 flex-wrap">
         {['All', ...ASSESSMENT_ROLES].map(r => (
           <button key={r} onClick={() => setFilter(r)}
-            className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${filter === r ? 'text-white' : 'text-gray-600 bg-white'}`}
+            className={`text-xs font-semibold px-3 py-1.5 rounded-full border ${filter === r ? 'text-white' : 'text-penfix-text-muted bg-penfix-card'}`}
             style={filter === r ? { backgroundColor: MAROON, borderColor: MAROON } : {}}>
             {r} {r === 'All' ? `(${assessments.length})` : `(${assessments.filter(a => a.role === r).length})`}
           </button>
@@ -135,7 +136,7 @@ export default function AssessmentsClient({
       </div>
 
       {shown.length === 0 ? (
-        <div className="bg-white rounded-xl border shadow-sm p-12 text-center text-gray-400">
+        <div className="bg-penfix-card rounded-xl border shadow-sm p-12 text-center text-penfix-text-muted">
           No assessments submitted yet. Generate a link above and send it to an applicant.
         </div>
       ) : (
@@ -145,10 +146,10 @@ export default function AssessmentsClient({
             const rubricDone = a.rubric && RUBRIC_CRITERIA.every(c => a.rubric?.[c])
             return (
               <Link key={a.id} href={`/admin/assessments/${a.id}`}
-                className="bg-white rounded-xl border shadow-sm p-4 flex items-center gap-4 flex-wrap hover:border-amber-300">
+                className="bg-penfix-card rounded-xl border shadow-sm p-4 flex items-center gap-4 flex-wrap hover:border-amber-300">
                 <div className="flex-1 min-w-[180px]">
-                  <p className="font-semibold text-sm text-gray-800">{a.full_name}</p>
-                  <p className="text-xs text-gray-500">{a.role} · submitted {fmt(a.submitted_at)}</p>
+                  <p className="font-semibold text-sm text-foreground">{a.full_name}</p>
+                  <p className="text-xs text-penfix-text-muted">{a.role} · submitted {fmt(a.submitted_at)}</p>
                 </div>
 
                 {a.flags.length > 0 && (
@@ -164,7 +165,7 @@ export default function AssessmentsClient({
 
                 <div className="text-right w-20">
                   <p className="text-lg font-bold leading-none" style={{ color: scoreColor(pct) }}>{pct}%</p>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{a.auto_score}/{a.auto_max}</p>
+                  <p className="text-[10px] text-penfix-text-muted mt-0.5">{a.auto_score}/{a.auto_max}</p>
                 </div>
               </Link>
             )

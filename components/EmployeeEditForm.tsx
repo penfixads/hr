@@ -70,15 +70,15 @@ export default function EmployeeEditForm({ employeeId, initial }: Props) {
     }
   }
 
-  const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+  const inputClass = "w-full border border-penfix-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
   const focusStyle = { '--tw-ring-color': '#C9A84C' } as React.CSSProperties
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1"
+  const labelClass = "block text-sm font-medium text-foreground mb-1"
   const requiredStar = <span className="text-red-500 ml-0.5">*</span>
 
   return (
-    <div className="bg-white rounded-xl border p-5 space-y-6">
+    <div className="bg-penfix-card rounded-xl border p-5 space-y-6">
       <div>
-        <h3 className="text-lg font-bold mb-4" style={{ color: '#4A0000' }}>Personal Information</h3>
+        <h3 className="text-lg font-bold mb-4" style={{ color: '#D9BB6E' }}>Personal Information</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Nickname / Preferred Name</label>
@@ -119,7 +119,7 @@ export default function EmployeeEditForm({ employeeId, initial }: Props) {
       </div>
 
       <div>
-        <h3 className="text-lg font-bold mb-4" style={{ color: '#4A0000' }}>Government Numbers</h3>
+        <h3 className="text-lg font-bold mb-4" style={{ color: '#D9BB6E' }}>Government Numbers</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className={labelClass}>SSS Number</label>
@@ -140,7 +140,7 @@ export default function EmployeeEditForm({ employeeId, initial }: Props) {
       </div>
 
       <div>
-        <h3 className="text-lg font-bold mb-4" style={{ color: '#4A0000' }}>Emergency Contact</h3>
+        <h3 className="text-lg font-bold mb-4" style={{ color: '#D9BB6E' }}>Emergency Contact</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label className={labelClass}>Emergency Contact Name {requiredStar}</label>
@@ -172,10 +172,10 @@ export default function EmployeeEditForm({ employeeId, initial }: Props) {
         <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">Changes saved.</div>
       )}
 
-      <div className="flex justify-end gap-3 pt-2 border-t border-gray-200">
+      <div className="flex justify-end gap-3 pt-2 border-t border-penfix-border">
         <button onClick={() => router.push('/my-records')}
           className="px-6 py-2 border-2 rounded-lg font-semibold text-sm transition-colors"
-          style={{ borderColor: '#4A0000', color: '#4A0000' }}>
+          style={{ borderColor: '#C9A84C', color: '#D9BB6E' }}>
           Back to MyHR
         </button>
         <button onClick={handleSave} disabled={saving}

@@ -5,10 +5,10 @@ import { supabase } from '@/lib/supabase'
 
 type EmployeeOption = { id: string; full_name: string; team: 'creative' | 'production' }
 
-const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 transition-colors focus:outline-none focus:ring-2 focus:ring-penfix-gold focus:border-transparent"
-const labelClass = "block text-sm font-medium text-gray-700 mb-1"
+const inputClass = "w-full border border-penfix-border rounded-lg px-3 py-2 text-sm text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-penfix-gold focus:border-transparent"
+const labelClass = "block text-sm font-medium text-foreground mb-1"
 const buttonClass = "px-8 py-2.5 rounded-lg font-semibold text-sm text-white bg-penfix-gold transition-all hover:bg-penfix-gold-dark hover:shadow-md active:scale-[0.98] disabled:opacity-60 disabled:hover:bg-penfix-gold disabled:active:scale-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-penfix-gold focus-visible:ring-offset-2"
-const cardClass = "max-w-2xl mx-auto w-full bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8"
+const cardClass = "max-w-2xl mx-auto w-full bg-penfix-card rounded-2xl shadow-sm border border-penfix-border p-6 sm:p-8"
 
 const MIN_PAYMENT_PER_PAYDAY = 500
 
@@ -77,7 +77,7 @@ export default function LoanForm() {
         <div className="flex flex-col items-center justify-center py-10 text-center px-6">
           <div className="text-6xl mb-6">✅</div>
           <h2 className="text-2xl font-bold mb-3 text-penfix-maroon">Request Submitted!</h2>
-          <p className="text-gray-600 text-lg max-w-md">
+          <p className="text-penfix-text-muted text-lg max-w-md">
             Thank you, {selected?.full_name} — your loan request of ₱{amountValue.toLocaleString()},
             payable at ₱{paymentValue.toLocaleString()} per payday over {numberOfPayments} payday{numberOfPayments === 1 ? '' : 's'}, has been recorded.
           </p>
@@ -89,7 +89,7 @@ export default function LoanForm() {
   return (
     <div className={cardClass}>
       <h3 className="text-lg font-bold mb-1 text-penfix-maroon">Loan Request</h3>
-      <p className="text-sm text-gray-500 mb-6">
+      <p className="text-sm text-penfix-text-muted mb-6">
         Fill out this form to request a regular loan, repaid in installments every payday.
       </p>
 
@@ -104,14 +104,14 @@ export default function LoanForm() {
             disabled={loadingEmployees}
           />
           {!selected && search && (
-            <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-lg mt-1 max-h-56 overflow-y-auto shadow-lg">
+            <div className="absolute z-10 w-full bg-penfix-card border border-penfix-border rounded-lg mt-1 max-h-56 overflow-y-auto shadow-lg">
               {filteredEmployees.length === 0 ? (
-                <div className="px-3 py-2 text-sm text-gray-400">No employee found.</div>
+                <div className="px-3 py-2 text-sm text-penfix-text-muted">No employee found.</div>
               ) : filteredEmployees.map(e => (
                 <button key={e.id} type="button"
                   onClick={() => selectEmployee(e)}
-                  className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-50 last:border-0">
-                  {e.full_name} <span className="text-gray-400 text-xs">({e.team === 'creative' ? 'Creative' : 'Production'})</span>
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-penfix-surface-muted border-b border-penfix-border last:border-0">
+                  {e.full_name} <span className="text-penfix-text-muted text-xs">({e.team === 'creative' ? 'Creative' : 'Production'})</span>
                 </button>
               ))}
             </div>
@@ -158,7 +158,7 @@ export default function LoanForm() {
         <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">{error}</div>
       )}
 
-      <div className="flex justify-end pt-4 border-t border-gray-200">
+      <div className="flex justify-end pt-4 border-t border-penfix-border">
         <button onClick={handleSubmit} disabled={submitting || !canSubmit} className={buttonClass}>
           {submitting ? 'Submitting...' : '✓ Submit Request'}
         </button>

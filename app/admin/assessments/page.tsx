@@ -24,12 +24,12 @@ export default async function AdminAssessmentsPage() {
       <PenfixHeader subtitle="Applicant Assessments" />
       <main className="flex-1 px-4 py-8 max-w-5xl mx-auto w-full">
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
-          <h2 className="text-2xl font-bold" style={{ color: '#4A0000' }}>Applicant Assessments</h2>
+          <h2 className="text-2xl font-bold" style={{ color: '#D9BB6E' }}>Applicant Assessments</h2>
           <div className="flex gap-4">
-            <Link href="/admin/applicants" className="text-sm hover:underline" style={{ color: '#4A0000' }}>
+            <Link href="/admin/applicants" className="text-sm hover:underline" style={{ color: '#D9BB6E' }}>
               Screening forms
             </Link>
-            <Link href="/admin" className="text-sm hover:underline" style={{ color: '#4A0000' }}>
+            <Link href="/admin" className="text-sm hover:underline" style={{ color: '#D9BB6E' }}>
               ← Back to Dashboard
             </Link>
           </div>

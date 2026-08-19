@@ -14,9 +14,9 @@ export const dynamic = 'force-dynamic'
 
 function Notice({ title, body }: { title: string; body: string }) {
   return (
-    <div className="max-w-md mx-auto bg-white rounded-xl border shadow-sm p-10 text-center">
-      <h2 className="text-lg font-bold mb-2" style={{ color: '#4A0000' }}>{title}</h2>
-      <p className="text-gray-600 text-sm">{body}</p>
+    <div className="max-w-md mx-auto bg-penfix-card rounded-xl border shadow-sm p-10 text-center">
+      <h2 className="text-lg font-bold mb-2" style={{ color: '#D9BB6E' }}>{title}</h2>
+      <p className="text-penfix-text-muted text-sm">{body}</p>
     </div>
   )
 }

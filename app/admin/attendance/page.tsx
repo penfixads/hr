@@ -45,8 +45,8 @@ export default async function AdminAttendancePage() {
 
       <main className="flex-1 px-4 py-8 max-w-5xl mx-auto w-full">
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
-          <h2 className="text-2xl font-bold" style={{ color: '#4A0000' }}>Attendance — {payPeriod.label}</h2>
-          <Link href="/admin" className="text-sm hover:underline" style={{ color: '#4A0000' }}>← Back to Dashboard</Link>
+          <h2 className="text-2xl font-bold" style={{ color: '#D9BB6E' }}>Attendance — {payPeriod.label}</h2>
+          <Link href="/admin" className="text-sm hover:underline" style={{ color: '#D9BB6E' }}>← Back to Dashboard</Link>
         </div>
 
         <AttendanceListClient entries={entries} />

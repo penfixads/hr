@@ -12,7 +12,7 @@ export const metadata = { title: 'Assessment — Penfix HR' }
 // applicant's own view never shows one.
 export const dynamic = 'force-dynamic'
 
-const MAROON = '#4A0000'
+const MAROON = '#D9BB6E'
 
 // Same Server Component timezone trap as AttendancePunchCard: without an explicit timeZone
 // this formats in the server's zone (UTC on Vercel), not Manila, so timestamps render 8 hours
@@ -39,19 +39,19 @@ export default async function AssessmentDetailPage({ params }: { params: Promise
           ← All assessments
         </Link>
 
-        <div className="bg-white rounded-xl border shadow-sm p-6 my-5">
+        <div className="bg-penfix-card rounded-xl border shadow-sm p-6 my-5">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
               <h2 className="text-xl font-bold" style={{ color: MAROON }}>{row.full_name}</h2>
-              <p className="text-sm text-gray-500 mt-1">{row.role}</p>
-              <p className="text-xs text-gray-400 mt-2">
+              <p className="text-sm text-penfix-text-muted mt-1">{row.role}</p>
+              <p className="text-xs text-penfix-text-muted mt-2">
                 {row.email} · {row.phone}
               </p>
-              <p className="text-xs text-gray-400">Submitted {fmt(row.submitted_at)}</p>
+              <p className="text-xs text-penfix-text-muted">Submitted {fmt(row.submitted_at)}</p>
             </div>
             <div className="text-right">
               <p className="text-3xl font-bold leading-none" style={{ color: MAROON }}>{pct}%</p>
-              <p className="text-xs text-gray-400 mt-1">{row.auto_score} of {row.auto_max} keyed</p>
+              <p className="text-xs text-penfix-text-muted mt-1">{row.auto_score} of {row.auto_max} keyed</p>
             </div>
           </div>
 
@@ -77,10 +77,10 @@ export default async function AssessmentDetailPage({ params }: { params: Promise
         />
 
         {sectionsForRole(role).map(section => (
-          <div key={section.id} className="bg-white rounded-xl border shadow-sm p-6 mb-5">
+          <div key={section.id} className="bg-penfix-card rounded-xl border shadow-sm p-6 mb-5">
             <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: MAROON }}>
               {section.title}
-              {!section.scored && <span className="ml-2 text-xs font-normal text-gray-400">not auto-scored</span>}
+              {!section.scored && <span className="ml-2 text-xs font-normal text-penfix-text-muted">not auto-scored</span>}
             </h3>
 
             <div className="flex flex-col gap-4">
@@ -99,10 +99,10 @@ export default async function AssessmentDetailPage({ params }: { params: Promise
 
                 return (
                   <div key={q.id} className="text-sm">
-                    <p className="text-gray-500 text-xs mb-1 whitespace-pre-line">{q.prompt}</p>
+                    <p className="text-penfix-text-muted text-xs mb-1 whitespace-pre-line">{q.prompt}</p>
 
                     {q.kind === 'ranking' ? (
-                      <ol className="list-decimal list-inside text-gray-800">
+                      <ol className="list-decimal list-inside text-foreground">
                         {(Array.isArray(given) ? given : []).map(item => <li key={item}>{item}</li>)}
                       </ol>
                     ) : (
@@ -114,12 +114,12 @@ export default async function AssessmentDetailPage({ params }: { params: Promise
                               ? 'bg-green-50 text-green-900'
                               : verdict === 'wrong'
                                 ? 'bg-amber-50 text-amber-900'
-                                : 'text-gray-800'
+                                : 'text-foreground'
                         }`}
                       >
                         {typeof given === 'string' && given.trim()
                           ? given
-                          : <span className="text-gray-400 italic">No answer</span>}
+                          : <span className="text-penfix-text-muted italic">No answer</span>}
                       </p>
                     )}
                   </div>

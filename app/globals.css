@@ -1,15 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  /* Same canvas + chrome colors as Penfix OS (jobs.penfixads.com) */
-  --background: #F9EBD8;
-  --foreground: #1a1a1a;
+  /* Dark maroon theme — darkest maroon canvas, cards in the usual brand maroon,
+     text in cream/white/lightest-grey for contrast. Same idea as the bibliotech
+     reference (darkest green canvas, moss-green card panels, gold/cream text). */
+  --background: #1E0007;
+  --foreground: #F3E7D6;
   --penfix-maroon: #4A0000;
   --penfix-maroon-light: #6B0000;
   --penfix-maroon-dark: #5C001F;
   --penfix-gold: #C9A84C;
   --penfix-gold-light: #D9BB6E;
   --penfix-gold-dark: #A8872C;
+  /* Card / surface tokens */
+  --penfix-card: #4A0000;
+  --penfix-card-border: rgba(201, 168, 76, 0.28);
+  --penfix-card-hover-border: rgba(201, 168, 76, 0.65);
+  --penfix-surface-muted: rgba(255, 255, 255, 0.06);
+  /* Text tokens: cream (primary), white (headings/emphasis), lightest grey (muted) */
+  --penfix-text: #F3E7D6;
+  --penfix-text-muted: #C9BBAE;
+  --penfix-border: rgba(243, 231, 214, 0.14);
 }
 
 @theme inline {
@@ -21,6 +32,11 @@
   --color-penfix-gold: var(--penfix-gold);
   --color-penfix-gold-light: var(--penfix-gold-light);
   --color-penfix-gold-dark: var(--penfix-gold-dark);
+  --color-penfix-card: var(--penfix-card);
+  --color-penfix-text-muted: var(--penfix-text-muted);
+  --color-penfix-border: var(--penfix-border);
+  --color-penfix-card-border: var(--penfix-card-border);
+  --color-penfix-surface-muted: var(--penfix-surface-muted);
 }
 
 body {
@@ -28,6 +44,20 @@ body {
   color: var(--foreground);
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
+
+/* ============================================================
+   Dark-theme surface helpers — card panels & muted text/borders
+   used across pages in place of the old bg-white / text-gray-* /
+   border-gray-* light-theme utilities.
+   ============================================================ */
+.pf-card {
+  background: var(--penfix-card);
+  border: 1px solid var(--penfix-card-border);
+  color: var(--penfix-text);
+}
+.pf-card:hover { border-color: var(--penfix-card-hover-border); }
+.pf-surface-muted { background: var(--penfix-surface-muted); }
+.pf-text-muted { color: var(--penfix-text-muted); }
 
 /* ============================================================
    Penfix form fields — light underline style, same source of truth

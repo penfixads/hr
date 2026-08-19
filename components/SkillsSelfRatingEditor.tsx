@@ -44,26 +44,26 @@ export default function SkillsSelfRatingEditor({ employeeId, team, initial }: Pr
   }
 
   return (
-    <div className="bg-white rounded-xl border p-5 space-y-6">
+    <div className="bg-penfix-card rounded-xl border p-5 space-y-6">
       <div>
-        <h3 className="text-lg font-bold mb-1" style={{ color: '#4A0000' }}>Skills Self-Assessment</h3>
-        <p className="text-sm text-gray-500 mb-4">
+        <h3 className="text-lg font-bold mb-1" style={{ color: '#D9BB6E' }}>Skills Self-Assessment</h3>
+        <p className="text-sm text-penfix-text-muted mb-4">
           Update your ratings as your skills improve: 1 = No knowledge · 2 = Basic · 3 = Intermediate · 4 = Advanced · 5 = Expert
         </p>
         {Object.entries(skills).map(([category, skillList]) => (
           <div key={category} className="mb-6">
-            <h4 className={`font-semibold text-sm pb-2 border-b-2 ${isBonusCategory(team, category) ? 'mb-1' : 'mb-3'}`} style={{ color: '#4A0000', borderColor: '#C9A84C' }}>
+            <h4 className={`font-semibold text-sm pb-2 border-b-2 ${isBonusCategory(team, category) ? 'mb-1' : 'mb-3'}`} style={{ color: '#D9BB6E', borderColor: '#C9A84C' }}>
               {category}
             </h4>
             {/* Without this note a GA rating themselves "1 - No knowledge" on seven machine
                 rows reasonably assumes they are failing the assessment. They are not. */}
             {isBonusCategory(team, category) && (
-              <p className="text-xs text-gray-500 mb-3">{BONUS_CATEGORY_NOTE}</p>
+              <p className="text-xs text-penfix-text-muted mb-3">{BONUS_CATEGORY_NOTE}</p>
             )}
             <div className="space-y-3">
               {(skillList as string[]).map((skill) => (
-                <div key={skill} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm text-gray-700 flex-1">{skill}</span>
+                <div key={skill} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-penfix-surface-muted rounded-lg">
+                  <span className="text-sm text-foreground flex-1">{skill}</span>
                   <StarRating value={ratings[skill] || 0} onChange={val => setRating(skill, val)} />
                 </div>
               ))}
@@ -79,7 +79,7 @@ export default function SkillsSelfRatingEditor({ employeeId, team, initial }: Pr
         <div className="p-3 bg-green-50 border border-green-200 text-green-700 rounded-lg text-sm">Skills ratings saved.</div>
       )}
 
-      <div className="flex justify-end pt-2 border-t border-gray-200">
+      <div className="flex justify-end pt-2 border-t border-penfix-border">
         <button onClick={handleSave} disabled={saving}
           className="px-8 py-2 rounded-lg font-semibold text-sm text-white transition-colors hover:opacity-90 disabled:opacity-60"
           style={{ backgroundColor: '#C9A84C' }}>

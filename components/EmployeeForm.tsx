@@ -138,28 +138,28 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center px-6">
         <div className="text-6xl mb-6">✅</div>
-        <h2 className="text-2xl font-bold mb-3" style={{ color: '#4A0000' }}>Submitted Successfully!</h2>
-        <p className="text-gray-600 text-lg max-w-md">
+        <h2 className="text-2xl font-bold mb-3" style={{ color: '#D9BB6E' }}>Submitted Successfully!</h2>
+        <p className="text-penfix-text-muted text-lg max-w-md">
           Thank you! Your profile has been submitted successfully. Management will review your assessment soon.
         </p>
       </div>
     )
   }
 
-  const inputClass = "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+  const inputClass = "w-full border border-penfix-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
   const focusStyle = { '--tw-ring-color': '#C9A84C' } as React.CSSProperties
-  const labelClass = "block text-sm font-medium text-gray-700 mb-1"
+  const labelClass = "block text-sm font-medium text-foreground mb-1"
   const requiredStar = <span className="text-red-500 ml-0.5">*</span>
 
   return (
     <div className="max-w-2xl mx-auto w-full">
       {/* Progress bar */}
       <div className="mb-8">
-        <div className="flex justify-between text-xs text-gray-500 mb-2">
+        <div className="flex justify-between text-xs text-penfix-text-muted mb-2">
           <span>Step {step + 1} of {STEPS.length}</span>
-          <span className="font-medium" style={{ color: '#4A0000' }}>{STEPS[step]}</span>
+          <span className="font-medium" style={{ color: '#D9BB6E' }}>{STEPS[step]}</span>
         </div>
-        <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-2 bg-penfix-surface-muted rounded-full overflow-hidden">
           <div
             className="h-full rounded-full transition-all duration-500"
             style={{ backgroundColor: '#C9A84C', width: `${((step + 1) / STEPS.length) * 100}%` }}
@@ -167,8 +167,8 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
         </div>
         <div className="flex justify-between mt-2">
           {STEPS.map((s, i) => (
-            <span key={s} className={`text-xs ${i <= step ? 'font-semibold' : 'text-gray-400'}`}
-              style={{ color: i <= step ? '#4A0000' : undefined }}>
+            <span key={s} className={`text-xs ${i <= step ? 'font-semibold' : 'text-penfix-text-muted'}`}
+              style={{ color: i <= step ? '#D9BB6E' : undefined }}>
               {i + 1}
             </span>
           ))}
@@ -182,7 +182,7 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
       {/* Step 0: Personal Information */}
       {step === 0 && (
         <div className="space-y-4">
-          <h3 className="text-lg font-bold mb-4" style={{ color: '#4A0000' }}>Personal Information</h3>
+          <h3 className="text-lg font-bold mb-4" style={{ color: '#D9BB6E' }}>Personal Information</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -266,7 +266,7 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
       {step === 1 && (
         <div className="space-y-6">
           <div>
-            <h3 className="text-lg font-bold mb-4" style={{ color: '#4A0000' }}>Government Numbers</h3>
+            <h3 className="text-lg font-bold mb-4" style={{ color: '#D9BB6E' }}>Government Numbers</h3>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className={labelClass}>SSS Number</label>
@@ -287,7 +287,7 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
           </div>
 
           <div>
-            <h3 className="text-lg font-bold mb-4" style={{ color: '#4A0000' }}>Emergency Contact</h3>
+            <h3 className="text-lg font-bold mb-4" style={{ color: '#D9BB6E' }}>Emergency Contact</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Emergency Contact Name {requiredStar}</label>
@@ -317,24 +317,24 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
       {/* Step 2: Skills */}
       {step === 2 && (
         <div>
-          <h3 className="text-lg font-bold mb-2" style={{ color: '#4A0000' }}>Skills Self-Assessment</h3>
-          <p className="text-sm text-gray-500 mb-6">
+          <h3 className="text-lg font-bold mb-2" style={{ color: '#D9BB6E' }}>Skills Self-Assessment</h3>
+          <p className="text-sm text-penfix-text-muted mb-6">
             Rate yourself honestly: 1 = No knowledge · 2 = Basic · 3 = Intermediate · 4 = Advanced · 5 = Expert
           </p>
           {Object.entries(skills).map(([category, skillList]) => (
             <div key={category} className="mb-8">
-              <h4 className={`font-semibold text-base pb-2 border-b-2 ${isBonusCategory(team, category) ? 'mb-1' : 'mb-3'}`} style={{ color: '#4A0000', borderColor: '#C9A84C' }}>
+              <h4 className={`font-semibold text-base pb-2 border-b-2 ${isBonusCategory(team, category) ? 'mb-1' : 'mb-3'}`} style={{ color: '#D9BB6E', borderColor: '#C9A84C' }}>
                 {category}
               </h4>
               {/* Same reassurance as the self-rating editor — a new hire meeting these seven
                   machine rows on day one should know they are optional, not a shortfall. */}
               {isBonusCategory(team, category) && (
-                <p className="text-xs text-gray-500 mb-3">{BONUS_CATEGORY_NOTE}</p>
+                <p className="text-xs text-penfix-text-muted mb-3">{BONUS_CATEGORY_NOTE}</p>
               )}
               <div className="space-y-4">
                 {(skillList as string[]).map((skill) => (
-                  <div key={skill} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-white rounded-lg border border-gray-100">
-                    <span className="text-sm text-gray-700 flex-1">{skill}</span>
+                  <div key={skill} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 bg-penfix-card rounded-lg border border-penfix-border">
+                    <span className="text-sm text-foreground flex-1">{skill}</span>
                     <StarRating value={ratings[skill] || 0} onChange={val => setRating(skill, val)} />
                   </div>
                 ))}
@@ -347,10 +347,10 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
       {/* Step 3: Review */}
       {step === 3 && (
         <div className="space-y-6">
-          <h3 className="text-lg font-bold" style={{ color: '#4A0000' }}>Review Your Submission</h3>
+          <h3 className="text-lg font-bold" style={{ color: '#D9BB6E' }}>Review Your Submission</h3>
 
-          <div className="bg-white rounded-xl border p-5 space-y-2">
-            <h4 className="font-semibold text-sm uppercase tracking-wide text-gray-500 mb-3">Personal Information</h4>
+          <div className="bg-penfix-card rounded-xl border p-5 space-y-2">
+            <h4 className="font-semibold text-sm uppercase tracking-wide text-penfix-text-muted mb-3">Personal Information</h4>
             {[
               ['Full Name', personal.full_name],
               ['Employee Number', personal.employee_number],
@@ -365,38 +365,38 @@ export default function EmployeeForm({ team, skills }: EmployeeFormProps) {
               ['Email', personal.email],
             ].map(([label, val]) => val ? (
               <div key={label} className="flex gap-2 text-sm">
-                <span className="text-gray-500 w-36 shrink-0">{label}:</span>
-                <span className="text-gray-800 font-medium">{val}</span>
+                <span className="text-penfix-text-muted w-36 shrink-0">{label}:</span>
+                <span className="text-foreground font-medium">{val}</span>
               </div>
             ) : null)}
           </div>
 
-          <div className="bg-white rounded-xl border p-5">
-            <h4 className="font-semibold text-sm uppercase tracking-wide text-gray-500 mb-3">Skills Summary</h4>
+          <div className="bg-penfix-card rounded-xl border p-5">
+            <h4 className="font-semibold text-sm uppercase tracking-wide text-penfix-text-muted mb-3">Skills Summary</h4>
             {Object.entries(skills).map(([category, skillList]) => {
               const rated = (skillList as string[]).filter(s => (ratings[s] || 0) > 0)
               const avg = rated.length ? (rated.reduce((sum, s) => sum + (ratings[s] || 0), 0) / rated.length).toFixed(1) : 'N/A'
               return (
                 <div key={category} className="text-sm mb-2">
-                  <span className="text-gray-700">{category}: </span>
-                  <span className="font-semibold" style={{ color: '#4A0000' }}>{avg} avg</span>
-                  <span className="text-gray-400 ml-2">({rated.length}/{(skillList as string[]).length} rated)</span>
+                  <span className="text-foreground">{category}: </span>
+                  <span className="font-semibold" style={{ color: '#D9BB6E' }}>{avg} avg</span>
+                  <span className="text-penfix-text-muted ml-2">({rated.length}/{(skillList as string[]).length} rated)</span>
                 </div>
               )
             })}
           </div>
 
-          <p className="text-sm text-gray-500 text-center">
+          <p className="text-sm text-penfix-text-muted text-center">
             Please review your information before submitting. You cannot edit after submission.
           </p>
         </div>
       )}
 
       {/* Navigation */}
-      <div className="flex justify-between mt-8 pt-4 border-t border-gray-200">
+      <div className="flex justify-between mt-8 pt-4 border-t border-penfix-border">
         {step > 0 ? (
           <button onClick={back} className="px-6 py-2 border-2 rounded-lg font-semibold text-sm transition-colors"
-            style={{ borderColor: '#4A0000', color: '#4A0000' }}>
+            style={{ borderColor: '#C9A84C', color: '#D9BB6E' }}>
             ← Back
           </button>
         ) : <div />}

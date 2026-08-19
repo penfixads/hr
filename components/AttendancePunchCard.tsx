@@ -3,7 +3,7 @@ import AttendancePunchRowActions from '@/components/AttendancePunchRowActions'
 import AttendancePunchAddAction from '@/components/AttendancePunchAddAction'
 import AttendanceAddPunchButton from '@/components/AttendanceAddPunchButton'
 
-const MAROON = '#4A0000'
+const MAROON = '#D9BB6E'
 
 type Props = {
   attendance: PayPeriodAttendanceSummary
@@ -29,48 +29,48 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
       <div className="flex flex-wrap gap-8 mb-4">
         {leadingStat && (
           <div>
-            <div className="text-xs text-gray-500">{leadingStat.label}</div>
+            <div className="text-xs text-penfix-text-muted">{leadingStat.label}</div>
             <div className="text-lg font-bold" style={{ color: MAROON }}>{leadingStat.value}</div>
           </div>
         )}
         <div>
-          <div className="text-xs text-gray-500">Complete Days</div>
+          <div className="text-xs text-penfix-text-muted">Complete Days</div>
           <div className="text-lg font-bold" style={{ color: MAROON }}>{attendance.completeDays}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Incomplete Days</div>
-          <div className="text-lg font-bold" style={{ color: attendance.incompleteDays > 0 ? '#b91c1c' : MAROON }}>{attendance.incompleteDays}</div>
+          <div className="text-xs text-penfix-text-muted">Incomplete Days</div>
+          <div className="text-lg font-bold" style={{ color: attendance.incompleteDays > 0 ? '#F87171' : MAROON }}>{attendance.incompleteDays}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Absent Days</div>
-          <div className="text-lg font-bold" style={{ color: absentDays > 0 ? '#b91c1c' : MAROON }}>{absentDays}</div>
+          <div className="text-xs text-penfix-text-muted">Absent Days</div>
+          <div className="text-lg font-bold" style={{ color: absentDays > 0 ? '#F87171' : MAROON }}>{absentDays}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Late/Flagged Punches</div>
-          <div className="text-lg font-bold" style={{ color: attendance.lateCount > 0 ? '#b91c1c' : MAROON }}>{attendance.lateCount}</div>
+          <div className="text-xs text-penfix-text-muted">Late/Flagged Punches</div>
+          <div className="text-lg font-bold" style={{ color: attendance.lateCount > 0 ? '#F87171' : MAROON }}>{attendance.lateCount}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Late Hours</div>
-          <div className="text-lg font-bold" style={{ color: attendance.lateMinutes > 0 ? '#b91c1c' : MAROON }}>{formatDecimalHours(attendance.lateMinutes)}</div>
+          <div className="text-xs text-penfix-text-muted">Late Hours</div>
+          <div className="text-lg font-bold" style={{ color: attendance.lateMinutes > 0 ? '#F87171' : MAROON }}>{formatDecimalHours(attendance.lateMinutes)}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Undertime Hours</div>
-          <div className="text-lg font-bold" style={{ color: attendance.undertimeMinutes > 0 ? '#b91c1c' : MAROON }}>{formatDecimalHours(attendance.undertimeMinutes)}</div>
+          <div className="text-xs text-penfix-text-muted">Undertime Hours</div>
+          <div className="text-lg font-bold" style={{ color: attendance.undertimeMinutes > 0 ? '#F87171' : MAROON }}>{formatDecimalHours(attendance.undertimeMinutes)}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Overtime Hours (punched)</div>
-          <div className="text-lg font-bold" style={{ color: attendance.overtimeMinutes > 0 ? '#15803d' : MAROON }}>{formatDecimalHours(attendance.overtimeMinutes)}</div>
+          <div className="text-xs text-penfix-text-muted">Overtime Hours (punched)</div>
+          <div className="text-lg font-bold" style={{ color: attendance.overtimeMinutes > 0 ? '#4ADE80' : MAROON }}>{formatDecimalHours(attendance.overtimeMinutes)}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Missing Login</div>
-          <div className="text-lg font-bold" style={{ color: attendance.missingLoginDays > 0 ? '#b91c1c' : MAROON }}>{attendance.missingLoginDays} day{attendance.missingLoginDays === 1 ? '' : 's'}</div>
+          <div className="text-xs text-penfix-text-muted">Missing Login</div>
+          <div className="text-lg font-bold" style={{ color: attendance.missingLoginDays > 0 ? '#F87171' : MAROON }}>{attendance.missingLoginDays} day{attendance.missingLoginDays === 1 ? '' : 's'}</div>
         </div>
         <div>
-          <div className="text-xs text-gray-500">Missing Logout</div>
-          <div className="text-lg font-bold" style={{ color: attendance.missingLogoutDays > 0 ? '#b91c1c' : MAROON }}>{attendance.missingLogoutDays} day{attendance.missingLogoutDays === 1 ? '' : 's'}</div>
+          <div className="text-xs text-penfix-text-muted">Missing Logout</div>
+          <div className="text-lg font-bold" style={{ color: attendance.missingLogoutDays > 0 ? '#F87171' : MAROON }}>{attendance.missingLogoutDays} day{attendance.missingLogoutDays === 1 ? '' : 's'}</div>
         </div>
       </div>
-      <p className="text-xs text-gray-400 mb-4 -mt-2">
+      <p className="text-xs text-penfix-text-muted mb-4 -mt-2">
         Undertime hours here are derived from early logouts only — separate from any approved undertime request on file.
         Overtime hours here are derived from extra punches after the day&apos;s Login–Logout is already complete — separate from any filed Overtime request.
         Absent Days assumes Sunday off and every other day worked, excluding company holidays and filed Leave dates — today and future dates are never counted. A day punched for only the morning or only the afternoon counts as 0.5.
@@ -79,15 +79,15 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
       {isAdmin && userEmail && <AttendanceAddPunchButton userEmail={userEmail} />}
 
       {attendance.dayGroups.length === 0 ? (
-        <p className="text-sm text-gray-400">No punches recorded yet this pay period.</p>
+        <p className="text-sm text-penfix-text-muted">No punches recorded yet this pay period.</p>
       ) : (
         <div className="flex flex-col gap-3">
           {attendance.dayGroups.map(day => {
             const missing = PUNCH_SEQUENCE.filter(step => !day.steps[step])
             return (
-              <div key={day.dateKey} className="border border-gray-100 rounded-lg p-3">
+              <div key={day.dateKey} className="border border-penfix-border rounded-lg p-3">
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm font-semibold text-gray-700">{day.dateKey}</p>
+                  <p className="text-sm font-semibold text-foreground">{day.dateKey}</p>
                   {missing.length > 0 && (
                     <p className="text-xs font-medium text-red-700">Missing {missing.map(s => PUNCH_LABELS[s]).join(', ')}</p>
                   )}
@@ -97,8 +97,8 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                     const row = day.steps[step]
                     const evaluation = day.evaluations[step]
                     return (
-                      <div key={step} className="border border-gray-100 rounded-lg p-2">
-                        <p className="text-xs text-gray-500">{PUNCH_LABELS[step]}</p>
+                      <div key={step} className="border border-penfix-border rounded-lg p-2">
+                        <p className="text-xs text-penfix-text-muted">{PUNCH_LABELS[step]}</p>
                         {row ? (
                           <>
                             <p className="text-sm font-medium">
@@ -111,7 +111,7 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                                   12-hour format; it does not imply a timezone. */}
                               {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' })}
                             </p>
-                            {row.place_name && <p className="text-xs text-gray-400">{row.place_name}</p>}
+                            {row.place_name && <p className="text-xs text-penfix-text-muted">{row.place_name}</p>}
                             {row.latitude !== null && row.longitude !== null && (
                               <a
                                 href={`https://www.openstreetmap.org/?mlat=${row.latitude}&mlon=${row.longitude}#map=17/${row.latitude}/${row.longitude}`}
@@ -128,12 +128,12 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                                 ⚠ {evaluation.reason}
                               </p>
                             )}
-                            {row.edited_by && <p className="text-xs text-gray-400">Edited by {row.edited_by}</p>}
+                            {row.edited_by && <p className="text-xs text-penfix-text-muted">Edited by {row.edited_by}</p>}
                             {isAdmin && <AttendancePunchRowActions id={row.id} punchType={step} createdAtIso={row.created_at} />}
                           </>
                         ) : (
                           <>
-                            <p className="text-sm text-gray-300">Missed</p>
+                            <p className="text-sm text-penfix-text-muted">Missed</p>
                             {isAdmin && userEmail && (
                               <AttendancePunchAddAction userEmail={userEmail} punchType={step} dateKey={day.dateKey} />
                             )}
@@ -144,14 +144,14 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                   })}
                 </div>
                 {day.extraPunches.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-gray-100">
+                  <div className="mt-2 pt-2 border-t border-penfix-border">
                     <p className="text-xs font-medium text-green-700 mb-1">
                       Extra punches after this day&apos;s Login–Logout{day.overtimeMinutes > 0 && ` — ${formatDecimalHours(day.overtimeMinutes)} counted as Overtime`}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {day.extraPunches.map((row, i) => (
                         <div key={row.id} className="border border-green-100 bg-green-50/50 rounded-lg px-2 py-1 text-xs flex items-center gap-1">
-                          <span className="text-gray-500">{i % 2 === 0 ? 'In' : 'Out'}</span>
+                          <span className="text-penfix-text-muted">{i % 2 === 0 ? 'In' : 'Out'}</span>
                           <span className="font-medium">
                             {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' })}
                           </span>
@@ -159,7 +159,7 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                         </div>
                       ))}
                       {day.extraPunches.length % 2 === 1 && (
-                        <span className="text-xs text-gray-400 self-center">last one has no closing punch yet — not counted</span>
+                        <span className="text-xs text-penfix-text-muted self-center">last one has no closing punch yet — not counted</span>
                       )}
                     </div>
                   </div>

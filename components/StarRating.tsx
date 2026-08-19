@@ -28,7 +28,7 @@ export default function StarRating({ value, onChange, readonly = false, size = '
         </button>
       ))}
       {value > 0 && (
-        <span className="text-xs text-gray-500 ml-1">{LABELS[value]}</span>
+        <span className="text-xs text-penfix-text-muted ml-1">{LABELS[value]}</span>
       )}
     </div>
   )

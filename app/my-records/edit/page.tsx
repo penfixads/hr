@@ -16,7 +16,7 @@ export default async function EditMyRecordPage() {
     return (
       <div className="flex flex-col min-h-screen">
         <PenfixHeader subtitle="Edit My Info" />
-        <main className="flex-1 flex items-center justify-center px-6 py-16 text-center text-gray-500">
+        <main className="flex-1 flex items-center justify-center px-6 py-16 text-center text-penfix-text-muted">
           No HR record found for your account yet — contact HR if you believe this is a mistake.
         </main>
         <PenfixFooter />
@@ -53,8 +53,8 @@ export default async function EditMyRecordPage() {
     <div className="flex flex-col min-h-screen">
       <PenfixHeader subtitle="Edit My Info" />
       <main className="flex-1 px-4 py-8 max-w-3xl mx-auto w-full">
-        <h2 className="text-2xl font-bold mb-2" style={{ color: '#4A0000' }}>{employee.full_name}&apos;s Info</h2>
-        <p className="text-sm text-gray-500 mb-6">
+        <h2 className="text-2xl font-bold mb-2" style={{ color: '#D9BB6E' }}>{employee.full_name}&apos;s Info</h2>
+        <p className="text-sm text-penfix-text-muted mb-6">
           Update your contact details, government numbers, or emergency contact. To change your team or full name, contact HR directly.
         </p>
         <EmployeeEditForm

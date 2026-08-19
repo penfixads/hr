@@ -58,30 +58,30 @@ export default function AttendanceAddPunchButton({ userEmail }: { userEmail: str
   }
 
   return (
-    <div className="mb-4 border border-gray-200 rounded-lg p-3 flex flex-wrap items-end gap-2">
+    <div className="mb-4 border border-penfix-border rounded-lg p-3 flex flex-wrap items-end gap-2">
       <label className="flex flex-col gap-1">
-        <span className="text-xs text-gray-500">Date</span>
+        <span className="text-xs text-penfix-text-muted">Date</span>
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1 text-sm" />
+          className="border border-penfix-border rounded px-2 py-1 text-sm" />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs text-gray-500">Punch</span>
+        <span className="text-xs text-penfix-text-muted">Punch</span>
         <select value={step} onChange={e => setStep(e.target.value as PunchType)}
-          className="border border-gray-300 rounded px-2 py-1 text-sm">
+          className="border border-penfix-border rounded px-2 py-1 text-sm">
           {PUNCH_SEQUENCE.map(s => <option key={s} value={s}>{PUNCH_LABELS[s]}</option>)}
         </select>
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs text-gray-500">Time</span>
+        <span className="text-xs text-penfix-text-muted">Time</span>
         <input type="time" value={time} onChange={e => setTime(e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1 text-sm" />
+          className="border border-penfix-border rounded px-2 py-1 text-sm" />
       </label>
       <button onClick={save} disabled={submitting}
         className="text-xs font-semibold px-3 py-1.5 rounded text-white disabled:opacity-60" style={{ backgroundColor: MAROON }}>
         {submitting ? 'Saving…' : 'Save'}
       </button>
       <button onClick={() => { setOpen(false); setError('') }} disabled={submitting}
-        className="text-xs font-semibold px-3 py-1.5 rounded border border-gray-300 text-gray-600">
+        className="text-xs font-semibold px-3 py-1.5 rounded border border-penfix-border text-penfix-text-muted">
         Close
       </button>
       {error && <span className="text-xs text-red-600 w-full">{error}</span>}

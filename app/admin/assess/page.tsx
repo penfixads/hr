@@ -60,21 +60,21 @@ function AssessPageInner() {
 
       <main className="flex-1 px-4 py-8 max-w-6xl mx-auto w-full">
         <div className="mb-6 flex items-center justify-between flex-wrap gap-3">
-          <h2 className="text-2xl font-bold" style={{ color: '#4A0000' }}>Skills Assessment</h2>
-          <Link href="/admin" className="text-sm hover:underline" style={{ color: '#4A0000' }}>← Back to Dashboard</Link>
+          <h2 className="text-2xl font-bold" style={{ color: '#D9BB6E' }}>Skills Assessment</h2>
+          <Link href="/admin" className="text-sm hover:underline" style={{ color: '#D9BB6E' }}>← Back to Dashboard</Link>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
           {/* Employee picker */}
-          <div className="bg-white rounded-xl border shadow-sm p-4 h-fit md:sticky md:top-4">
+          <div className="bg-penfix-card rounded-xl border shadow-sm p-4 h-fit md:sticky md:top-4">
             <input
               type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none"
+              className="w-full border border-penfix-border rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none"
             />
             {loading ? (
-              <div className="text-sm text-gray-400 py-6 text-center">Loading...</div>
+              <div className="text-sm text-penfix-text-muted py-6 text-center">Loading...</div>
             ) : filtered.length === 0 ? (
-              <div className="text-sm text-gray-400 py-6 text-center">No employees found.</div>
+              <div className="text-sm text-penfix-text-muted py-6 text-center">No employees found.</div>
             ) : (
               <div className="flex flex-col gap-1 max-h-[65vh] overflow-y-auto">
                 {filtered.map(emp => (
@@ -82,7 +82,7 @@ function AssessPageInner() {
                     className="text-left px-3 py-2 rounded-lg text-sm transition flex items-center justify-between gap-2"
                     style={{
                       backgroundColor: emp.id === selectedId ? '#4A0000' : 'transparent',
-                      color: emp.id === selectedId ? '#fff' : '#374151',
+                      color: emp.id === selectedId ? '#fff' : '#D9BB6E',
                     }}>
                     <span className="truncate">{emp.full_name}</span>
                     <span
@@ -99,15 +99,15 @@ function AssessPageInner() {
           {/* Rating editor */}
           <div>
             {!selected ? (
-              <div className="bg-white rounded-xl border shadow-sm p-12 text-center text-gray-400">
+              <div className="bg-penfix-card rounded-xl border shadow-sm p-12 text-center text-penfix-text-muted">
                 Pick an employee from the list to start rating their skills.
               </div>
             ) : (
               <>
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                   <div>
-                    <h3 className="text-xl font-bold" style={{ color: '#4A0000' }}>{selected.full_name}</h3>
-                    <p className="text-sm text-gray-500 capitalize">{selected.team} Team · {selected.employment_status}</p>
+                    <h3 className="text-xl font-bold" style={{ color: '#D9BB6E' }}>{selected.full_name}</h3>
+                    <p className="text-sm text-penfix-text-muted capitalize">{selected.team} Team · {selected.employment_status}</p>
                   </div>
                   <button onClick={goToNext}
                     className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
