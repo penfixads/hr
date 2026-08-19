@@ -2,6 +2,7 @@ import Link from 'next/link'
 import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import EmployeeRecordSummary from '@/components/EmployeeRecordSummary'
+import HolidayCalendar from '@/components/HolidayCalendar'
 import { getCurrentEmployee } from '@/lib/employee-session'
 import { supabase } from '@/lib/supabase'
 import { getEmployeeRecords } from '@/lib/employee-records'
@@ -9,6 +10,7 @@ import { getMyAttendanceLogs, summarizePayPeriod, computeAbsentDays, sumAbsentDa
 import { getCurrentPayPeriod, getNextPayday } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
 import { computeLeaveBalances } from '@/lib/leave'
+import { titleCase } from '@/lib/text'
 
 export const metadata = {
   title: 'MyHR — Penfix',
@@ -53,13 +55,18 @@ export default async function MyRecordsPage() {
       <PenfixHeader subtitle="MyHR" />
       <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-          <h2 className="text-2xl font-bold" style={{ color: '#D9BB6E' }}>{employee.full_name}&apos;s Records</h2>
+          <h2 className="text-2xl font-bold" style={{ color: '#D9BB6E' }}>{titleCase(employee.full_name)}&apos;s Records</h2>
           <Link href="/my-records/edit"
             className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
             style={{ backgroundColor: '#4A0000' }}>
             Edit My Info
           </Link>
         </div>
+
+        <div className="mb-6">
+          <HolidayCalendar />
+        </div>
+
         <EmployeeRecordSummary
           mode="self"
           employee={{ full_name: employee.full_name, employment_status: employee.employment_status }}

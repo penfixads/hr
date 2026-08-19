@@ -7,6 +7,7 @@ import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import BossRatingEditor from '@/components/BossRatingEditor'
 import Link from 'next/link'
+import { titleCase } from '@/lib/text'
 
 type Employee = {
   id: string
@@ -84,7 +85,7 @@ function AssessPageInner() {
                       backgroundColor: emp.id === selectedId ? '#4A0000' : 'transparent',
                       color: emp.id === selectedId ? '#fff' : '#D9BB6E',
                     }}>
-                    <span className="truncate">{emp.full_name}</span>
+                    <span className="truncate">{titleCase(emp.full_name)}</span>
                     <span
                       title={hasBossRating(emp) ? 'Rated' : 'Not yet rated'}
                       className="w-2 h-2 rounded-full shrink-0"
@@ -106,7 +107,7 @@ function AssessPageInner() {
               <>
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
                   <div>
-                    <h3 className="text-xl font-bold" style={{ color: '#D9BB6E' }}>{selected.full_name}</h3>
+                    <h3 className="text-xl font-bold" style={{ color: '#D9BB6E' }}>{titleCase(selected.full_name)}</h3>
                     <p className="text-sm text-penfix-text-muted capitalize">{selected.team} Team · {selected.employment_status}</p>
                   </div>
                   <button onClick={goToNext}

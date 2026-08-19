@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { generateInviteAction, setStatusAction } from './actions'
 import { APPLICANT_STATUSES, formatSalaryRange } from '@/lib/applicants'
+import { titleCase } from '@/lib/text'
 
 const MAROON = '#4A0000'
 const MAROON_TEXT = '#D9BB6E'
@@ -154,7 +155,7 @@ export default function ApplicantsClient({
                 <div className="flex justify-between items-start gap-4 flex-wrap">
                   <div className="flex-1 min-w-[200px]">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-bold" style={{ color: MAROON_TEXT }}>{a.full_name}</h3>
+                      <h3 className="font-bold" style={{ color: MAROON_TEXT }}>{titleCase(a.full_name)}</h3>
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
                         style={{ color: STATUS_COLOR[a.status], backgroundColor: `${STATUS_COLOR[a.status]}1a` }}>
                         {a.status}

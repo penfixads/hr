@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { generateAssessmentInviteAction } from './actions'
 import { ASSESSMENT_ROLES, RUBRIC_CRITERIA, scorePercent } from '@/lib/assessment'
+import { titleCase } from '@/lib/text'
 
 const MAROON = '#4A0000'
 const MAROON_TEXT = '#D9BB6E'
@@ -148,7 +149,7 @@ export default function AssessmentsClient({
               <Link key={a.id} href={`/admin/assessments/${a.id}`}
                 className="bg-penfix-card rounded-xl border shadow-sm p-4 flex items-center gap-4 flex-wrap hover:border-amber-300">
                 <div className="flex-1 min-w-[180px]">
-                  <p className="font-semibold text-sm text-foreground">{a.full_name}</p>
+                  <p className="font-semibold text-sm text-foreground">{titleCase(a.full_name)}</p>
                   <p className="text-xs text-penfix-text-muted">{a.role} · submitted {fmt(a.submitted_at)}</p>
                 </div>
 

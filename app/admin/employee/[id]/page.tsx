@@ -9,6 +9,7 @@ import { getAttendanceLogsForEmployee, summarizePayPeriod, computeAbsentDays, su
 import { getCurrentPayPeriod, getNextPayday } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
 import { computeLeaveBalances } from '@/lib/leave'
+import { titleCase } from '@/lib/text'
 
 type Employee = {
   id: string
@@ -74,7 +75,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
 
   return (
     <div className="flex flex-col min-h-screen">
-      <PenfixHeader subtitle={`Profile: ${employee.full_name}`} />
+      <PenfixHeader subtitle={`Profile: ${titleCase(employee.full_name)}`} />
 
       <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
         <div className="mb-6">
@@ -86,7 +87,7 @@ export default async function EmployeeDetailPage({ params }: { params: Promise<{
           <h3 className="font-bold text-base mb-4 pb-2 border-b" style={{ color: '#D9BB6E' }}>Personal Information</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8">
             <div>
-              {infoRow('Full Name', employee.full_name)}
+              {infoRow('Full Name', titleCase(employee.full_name))}
               {infoRow('Nickname', employee.nickname)}
               {infoRow('Employee Number', employee.employee_number)}
               {infoRow('Date of Birth', employee.date_of_birth)}

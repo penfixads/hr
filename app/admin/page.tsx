@@ -6,6 +6,8 @@ import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import Link from 'next/link'
 import { computeSkillsScore, raiseLabel } from '@/lib/skills'
+import { titleCase } from '@/lib/text'
+import HolidayCalendar from '@/components/HolidayCalendar'
 
 type Employee = {
   id: string
@@ -22,6 +24,14 @@ type Employee = {
 type SortKey = 'full_name' | 'team' | 'submitted_at' | 'avg_score'
 type SortDir = 'asc' | 'desc'
 
+type PendingRequest = {
+  id: string
+  employeeName: string
+  type: 'Cash Advance' | 'Loan'
+  detail: string
+  submitted_at: string
+}
+
 // Delegates to lib/skills.ts so this column agrees with the assessment page. It used to walk
 // the stored rating keys and take a flat mean of everything it found, which both ignored the
 // bonus/core split and counted any stale key left in the JSON.
@@ -36,6 +46,7 @@ export default function AdminPage() {
   const [sortDir, setSortDir] = useState<SortDir>('desc')
   const [filterTeam, setFilterTeam] = useState('All')
   const [search, setSearch] = useState('')
+  const [pendingRequests, setPendingRequests] = useState<PendingRequest[]>([])
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true)
@@ -44,9 +55,36 @@ export default function AdminPage() {
     setLoading(false)
   }, [])
 
+  // Cash Advance / Loan are the only two request types with an approval workflow (see
+  // components/RequestApprovalActions.tsx) — Overtime/Undertime/Leave are just filed, no
+  // "Pending" state to surface here.
+  const fetchPendingRequests = useCallback(async () => {
+    const [cash, loans] = await Promise.all([
+      supabase.from('cash_advance_requests')
+        .select('id, employee_name, amount, submitted_at')
+        .eq('status', 'Pending').order('submitted_at', { ascending: false }),
+      supabase.from('loan_requests')
+        .select('id, employee_name, amount, submitted_at')
+        .eq('status', 'Pending').order('submitted_at', { ascending: false }),
+    ])
+    type Row = { id: string; employee_name: string; amount: number; submitted_at: string }
+    const combined: PendingRequest[] = [
+      ...((cash.data as Row[] | null) ?? []).map(r => ({
+        id: r.id, employeeName: r.employee_name, type: 'Cash Advance' as const,
+        detail: `₱${r.amount.toLocaleString()}`, submitted_at: r.submitted_at,
+      })),
+      ...((loans.data as Row[] | null) ?? []).map(r => ({
+        id: r.id, employeeName: r.employee_name, type: 'Loan' as const,
+        detail: `₱${r.amount.toLocaleString()}`, submitted_at: r.submitted_at,
+      })),
+    ].sort((a, b) => b.submitted_at.localeCompare(a.submitted_at))
+    setPendingRequests(combined)
+  }, [])
+
   useEffect(() => {
     fetchEmployees()
-  }, [fetchEmployees])
+    fetchPendingRequests()
+  }, [fetchEmployees, fetchPendingRequests])
 
   const deleteEmployee = async (emp: Employee) => {
     if (!confirm(`Delete "${emp.full_name}"'s record (${emp.team})? This cannot be undone.`)) return
@@ -111,17 +149,17 @@ export default function AdminPage() {
     <div className="flex flex-col min-h-screen">
       <PenfixHeader subtitle="Admin Dashboard — Skills Assessment Overview" />
 
-      <main className="flex-1 px-4 py-8 max-w-7xl mx-auto w-full">
+      <main className="flex-1 px-4 py-8 max-w-7xl mx-auto w-full" style={{ backgroundColor: '#F5F1E8' }}>
         {/* Overview cards */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           {[
-            { label: 'Total Submissions', value: employees.length, color: '#F3E7D6' },
-            { label: 'Creative Team', value: totalCreative, color: '#D9BB6E' },
-            { label: 'Production Team', value: totalProduction, color: '#C9A84C' },
+            { label: 'Total Submissions', value: employees.length, color: '#4A0000' },
+            { label: 'Creative Team', value: totalCreative, color: '#7A1828' },
+            { label: 'Production Team', value: totalProduction, color: '#A8872C' },
           ].map(({ label, value, color }) => (
-            <div key={label} className="bg-penfix-card rounded-xl shadow-sm border border-penfix-gold/40 p-5 text-center">
+            <div key={label} className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 text-center">
               <div className="text-3xl font-bold" style={{ color }}>{value}</div>
-              <div className="text-sm text-penfix-text-muted mt-1">{label}</div>
+              <div className="text-sm text-gray-500 mt-1">{label}</div>
             </div>
           ))}
         </div>
@@ -131,24 +169,16 @@ export default function AdminPage() {
           <div className="flex gap-3 flex-wrap">
             <input
               type="text" placeholder="Search by name..." value={search} onChange={e => setSearch(e.target.value)}
-              className="border border-penfix-gold/40 rounded-lg px-3 py-2 text-sm w-52 focus:outline-none"
+              className="bg-white text-gray-900 placeholder:text-gray-400 border border-gray-300 rounded-lg px-3 py-2 text-sm w-52 focus:outline-none"
             />
             <select value={filterTeam} onChange={e => setFilterTeam(e.target.value)}
-              className="border border-penfix-gold/40 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              className="bg-white text-gray-900 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option>All</option>
               <option>Creative Team</option>
               <option>Production Team</option>
             </select>
           </div>
           <div className="flex gap-3">
-            <Link href="/" title="Home"
-              className="p-2 rounded-lg transition hover:opacity-90"
-              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#D9BB6E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 9.5 12 3l9 6.5" />
-                <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
-              </svg>
-            </Link>
             <Link href="/admin/attendance"
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
               style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
@@ -164,6 +194,11 @@ export default function AdminPage() {
               style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
               History
             </Link>
+            <Link href="/admin/holidays"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
+              Holidays
+            </Link>
             <button onClick={exportCSV}
               className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
               style={{ backgroundColor: '#C9A84C', border: '1px solid #C9A84C' }}>
@@ -173,16 +208,16 @@ export default function AdminPage() {
         </div>
 
         {/* Table */}
-        <div className="bg-penfix-card rounded-xl shadow-sm border border-penfix-gold/40 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {loading ? (
-            <div className="p-12 text-center text-penfix-text-muted">Loading submissions...</div>
+            <div className="p-12 text-center text-gray-400">Loading submissions...</div>
           ) : filtered.length === 0 ? (
-            <div className="p-12 text-center text-penfix-text-muted">No submissions found.</div>
+            <div className="p-12 text-center text-gray-400">No submissions found.</div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr style={{ backgroundColor: '#4A0000', color: 'white' }}>
+                  <tr className="bg-gray-50 border-b border-gray-200 text-gray-700">
                     {[
                       { label: 'Name', key: 'full_name' as SortKey },
                       { label: 'Team', key: 'team' as SortKey },
@@ -194,7 +229,7 @@ export default function AdminPage() {
                       { label: 'Action', key: null },
                     ].map(({ label, key }) => (
                       <th key={label}
-                        className={`px-4 py-3 text-left font-semibold ${key ? 'cursor-pointer hover:opacity-80' : ''}`}
+                        className={`px-4 py-3 text-left font-semibold ${key ? 'cursor-pointer hover:text-gray-900' : ''}`}
                         onClick={() => key && handleSort(key)}>
                         {label}{key && <SortIcon k={key} />}
                       </th>
@@ -206,8 +241,8 @@ export default function AdminPage() {
                     const score = avgScore(emp)
                     const raise = raiseLabel(score)
                     return (
-                      <tr key={emp.id} className={i % 2 === 0 ? 'bg-penfix-card' : 'bg-penfix-surface-muted'}>
-                        <td className="px-4 py-3 font-medium">{emp.full_name}</td>
+                      <tr key={emp.id} className={`text-gray-900 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}`}>
+                        <td className="px-4 py-3 font-medium">{titleCase(emp.full_name)}</td>
                         <td className="px-4 py-3">
                           <span className="px-2 py-0.5 rounded-full text-xs font-semibold"
                             style={{
@@ -217,41 +252,34 @@ export default function AdminPage() {
                             {emp.team === 'creative' ? 'Creative' : 'Production'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-penfix-text-muted">{emp.position}</td>
-                        <td className="px-4 py-3 text-penfix-text-muted">{emp.employment_status}</td>
-                        <td className="px-4 py-3 text-penfix-text-muted text-xs">
+                        <td className="px-4 py-3 text-gray-500">{emp.position}</td>
+                        <td className="px-4 py-3 text-gray-500">{emp.employment_status}</td>
+                        <td className="px-4 py-3 text-gray-500 text-xs">
                           {new Date(emp.submitted_at).toLocaleDateString('en-PH', { year: 'numeric', month: 'short', day: 'numeric' })}
                         </td>
                         <td className="px-4 py-3">
                           {score > 0 ? (
                             <span className="font-bold text-base">{score.toFixed(1)}</span>
-                          ) : <span className="text-penfix-text-muted text-xs">Pending</span>}
+                          ) : <span className="text-gray-400 text-xs">Pending</span>}
                         </td>
                         <td className="px-4 py-3">
                           {score > 0 ? (
                             <span className="text-xs font-semibold">{raise.label}</span>
-                          ) : <span className="text-penfix-text-muted text-xs">—</span>}
+                          ) : <span className="text-gray-400 text-xs">—</span>}
                         </td>
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <Link href={`/admin/employee/${emp.id}`} title="View record"
-                              className="p-1.5 rounded-lg text-white transition hover:opacity-80"
-                              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
+                              className="p-1.5 rounded-lg transition hover:opacity-70"
+                              style={{ color: '#4A0000' }}>
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z" />
                                 <circle cx="12" cy="12" r="3" />
                               </svg>
                             </Link>
-                            <Link href={`/admin/assess?employee=${emp.id}`} title="Evaluate skills"
-                              className="p-1.5 rounded-lg text-white transition hover:opacity-80"
-                              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <polygon points="12 2 15 9 22 9 16.5 13.5 18.5 21 12 17 5.5 21 7.5 13.5 2 9 9 9" />
-                              </svg>
-                            </Link>
                             <button onClick={() => deleteEmployee(emp)} title="Delete record"
-                              className="p-1.5 rounded-lg text-white transition hover:opacity-80"
-                              style={{ backgroundColor: '#4A0000', border: '1px solid #C9A84C' }}>
+                              className="p-1.5 rounded-lg transition hover:opacity-70"
+                              style={{ color: '#4A0000' }}>
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                 <polyline points="3 6 5 6 21 6" />
                                 <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
@@ -268,6 +296,40 @@ export default function AdminPage() {
               </table>
             </div>
           )}
+        </div>
+
+        {/* Bottom row: calendar + what's waiting on approval */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mt-6">
+          <HolidayCalendar editable />
+
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-bold text-gray-900">Pending Approvals</h3>
+              <Link href="/admin/requests" className="text-xs font-semibold hover:underline" style={{ color: '#4A0000' }}>
+                Review all →
+              </Link>
+            </div>
+            {pendingRequests.length === 0 ? (
+              <p className="text-sm text-gray-400 py-6 text-center">Nothing waiting on approval right now.</p>
+            ) : (
+              <div className="flex flex-col divide-y divide-gray-100">
+                {pendingRequests.slice(0, 6).map(r => (
+                  <div key={`${r.type}-${r.id}`} className="flex items-center justify-between gap-3 py-2.5">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span
+                        className="text-xs font-semibold px-2 py-0.5 rounded-full shrink-0"
+                        style={{ color: '#ca8a04', backgroundColor: '#ca8a041a' }}
+                      >
+                        {r.type}
+                      </span>
+                      <span className="text-sm font-medium text-gray-900 truncate">{titleCase(r.employeeName)}</span>
+                    </div>
+                    <span className="text-sm text-gray-500 shrink-0">{r.detail}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </main>
 

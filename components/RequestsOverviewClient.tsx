@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import type { RequestsOverviewEmployee, OvertimeRow } from '@/lib/employee-records'
 import { Card, EmptyRow, StatusBadge, fmtDate, fmtSubmitted } from '@/components/EmployeeRecordSummary'
 import RequestApprovalActions from '@/components/RequestApprovalActions'
+import { titleCase } from '@/lib/text'
 
 const inputClass = "border border-penfix-border rounded px-2 py-1 text-sm w-full focus:outline-none focus:ring-1 focus:ring-penfix-gold"
 
@@ -290,7 +291,7 @@ export default function RequestsOverviewClient({ entries }: { entries: RequestsO
               <details key={entry.employeeId} open className="bg-penfix-card rounded-xl border shadow-sm p-6 group">
                 <summary className="flex items-center justify-between cursor-pointer list-none mb-4 pb-2 border-b">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <h3 className="font-bold text-base" style={{ color: MAROON }}>{entry.employeeName}</h3>
+                    <h3 className="font-bold text-base" style={{ color: MAROON }}>{titleCase(entry.employeeName)}</h3>
                     <div className="flex items-center gap-2 text-xs text-penfix-text-muted">
                       {entry.cashAdvances.length > 0 && <span>{countLabel(entry.cashAdvances.length, 'cash advance')}</span>}
                       {entry.loans.length > 0 && <span>{countLabel(entry.loans.length, 'loan')}</span>}

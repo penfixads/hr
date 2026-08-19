@@ -4,6 +4,7 @@ import EmployeeEditForm from '@/components/EmployeeEditForm'
 import SkillsSelfRatingEditor from '@/components/SkillsSelfRatingEditor'
 import { getCurrentEmployee } from '@/lib/employee-session'
 import { supabase } from '@/lib/supabase'
+import { titleCase } from '@/lib/text'
 
 export const metadata = {
   title: 'Edit My Info — Penfix',
@@ -53,7 +54,7 @@ export default async function EditMyRecordPage() {
     <div className="flex flex-col min-h-screen">
       <PenfixHeader subtitle="Edit My Info" />
       <main className="flex-1 px-4 py-8 max-w-3xl mx-auto w-full">
-        <h2 className="text-2xl font-bold mb-2" style={{ color: '#D9BB6E' }}>{employee.full_name}&apos;s Info</h2>
+        <h2 className="text-2xl font-bold mb-2" style={{ color: '#D9BB6E' }}>{titleCase(employee.full_name)}&apos;s Info</h2>
         <p className="text-sm text-penfix-text-muted mb-6">
           Update your contact details, government numbers, or emergency contact. To change your team or full name, contact HR directly.
         </p>

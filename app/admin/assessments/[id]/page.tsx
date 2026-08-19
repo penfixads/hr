@@ -5,6 +5,7 @@ import PenfixFooter from '@/components/PenfixFooter'
 import { getAssessment } from '@/lib/assessment-server'
 import { sectionsForRole, scorePercent, type AssessmentRole } from '@/lib/assessment'
 import RubricForm from './RubricForm'
+import { titleCase } from '@/lib/text'
 
 export const metadata = { title: 'Assessment — Penfix HR' }
 
@@ -42,7 +43,7 @@ export default async function AssessmentDetailPage({ params }: { params: Promise
         <div className="bg-penfix-card rounded-xl border shadow-sm p-6 my-5">
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div>
-              <h2 className="text-xl font-bold" style={{ color: MAROON }}>{row.full_name}</h2>
+              <h2 className="text-xl font-bold" style={{ color: MAROON }}>{titleCase(row.full_name)}</h2>
               <p className="text-sm text-penfix-text-muted mt-1">{row.role}</p>
               <p className="text-xs text-penfix-text-muted mt-2">
                 {row.email} · {row.phone}

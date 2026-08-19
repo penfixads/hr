@@ -143,3 +143,23 @@ export function formatOfficeDate(date: Date): string {
   const local = toOfficeLocal(date)
   return `${MONTH_NAMES[local.getUTCMonth()]} ${local.getUTCDate()}, ${local.getUTCFullYear()}`
 }
+
+// Counts paydays that have occurred strictly after `fromDate` and on/before `toDate` —
+// used on the home page (app/page.tsx) to ESTIMATE a loan's remaining balance as
+// `amount - installment * paydaysElapsed`, since there is no actual per-payday deduction
+// ledger to read the real paid-off amount from. This is only ever a display estimate —
+// it assumes every payday's deduction went through as scheduled with no skips or
+// adjustments, which won't always be true.
+export function countPaydaysSince(fromDate: Date, toDate: Date = new Date()): number {
+  let count = 0
+  let cursor = fromDate
+  // Bounded to 5 years of semi-monthly paydays — a loan sitting unpaid that long is not
+  // a case this estimate needs to keep iterating for.
+  for (let i = 0; i < 120; i++) {
+    const next = getNextPayday(cursor)
+    if (next.getTime() > toDate.getTime()) break
+    count++
+    cursor = new Date(next.getTime() + 24 * 60 * 60 * 1000)
+  }
+  return count
+}

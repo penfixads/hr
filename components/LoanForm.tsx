@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { titleCase } from '@/lib/text'
 
 type EmployeeOption = { id: string; full_name: string; team: 'creative' | 'production' }
 
@@ -78,7 +79,7 @@ export default function LoanForm() {
           <div className="text-6xl mb-6">✅</div>
           <h2 className="text-2xl font-bold mb-3 text-penfix-maroon">Request Submitted!</h2>
           <p className="text-penfix-text-muted text-lg max-w-md">
-            Thank you, {selected?.full_name} — your loan request of ₱{amountValue.toLocaleString()},
+            Thank you, {titleCase(selected?.full_name)} — your loan request of ₱{amountValue.toLocaleString()},
             payable at ₱{paymentValue.toLocaleString()} per payday over {numberOfPayments} payday{numberOfPayments === 1 ? '' : 's'}, has been recorded.
           </p>
         </div>
@@ -99,7 +100,7 @@ export default function LoanForm() {
           <input
             className={inputClass}
             placeholder={loadingEmployees ? 'Loading employees...' : 'Search your name...'}
-            value={selected ? selected.full_name : search}
+            value={selected ? titleCase(selected.full_name) : search}
             onChange={e => { setSelectedId(''); setSearch(e.target.value) }}
             disabled={loadingEmployees}
           />
@@ -111,7 +112,7 @@ export default function LoanForm() {
                 <button key={e.id} type="button"
                   onClick={() => selectEmployee(e)}
                   className="w-full text-left px-3 py-2 text-sm hover:bg-penfix-surface-muted border-b border-penfix-border last:border-0">
-                  {e.full_name} <span className="text-penfix-text-muted text-xs">({e.team === 'creative' ? 'Creative' : 'Production'})</span>
+                  {titleCase(e.full_name)} <span className="text-penfix-text-muted text-xs">({e.team === 'creative' ? 'Creative' : 'Production'})</span>
                 </button>
               ))}
             </div>

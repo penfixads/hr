@@ -5,6 +5,7 @@ import type { EmployeeRecords } from '@/lib/employee-records'
 import type { LeaveBalance } from '@/lib/leave'
 import RequestApprovalActions from '@/components/RequestApprovalActions'
 import AttendancePunchCard from '@/components/AttendancePunchCard'
+import { titleCase } from '@/lib/text'
 
 const MAROON = '#D9BB6E'
 
@@ -59,7 +60,7 @@ export function StatusBadge({ status }: { status: string }) {
 }
 
 export default function EmployeeRecordSummary({ mode, employee, records, leaveBalances, payPeriod, nextPayday, attendance, absentDays }: Props) {
-  const possessive = mode === 'self' ? 'Your' : `${employee.full_name}'s`
+  const possessive = mode === 'self' ? 'Your' : `${titleCase(employee.full_name)}'s`
 
   return (
     <>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { titleCase } from '@/lib/text'
 
 type EmployeeOption = { id: string; full_name: string; team: 'creative' | 'production' }
 
@@ -66,7 +67,7 @@ export default function UndertimeForm() {
         <div className="text-6xl mb-6">✅</div>
         <h2 className="text-2xl font-bold mb-3" style={{ color: '#D9BB6E' }}>Undertime Filed!</h2>
         <p className="text-penfix-text-muted text-lg max-w-md">
-          Thank you, {selected?.full_name} — your undertime for {undertimeDate} has been recorded.
+          Thank you, {titleCase(selected?.full_name)} — your undertime for {undertimeDate} has been recorded.
         </p>
       </div>
     )
@@ -89,7 +90,7 @@ export default function UndertimeForm() {
           <input
             style={focusStyle} className={inputClass}
             placeholder={loadingEmployees ? 'Loading employees...' : 'Search your name...'}
-            value={selected ? selected.full_name : search}
+            value={selected ? titleCase(selected.full_name) : search}
             onChange={e => { setSelectedId(''); setSearch(e.target.value) }}
             disabled={loadingEmployees}
           />
@@ -101,7 +102,7 @@ export default function UndertimeForm() {
                 <button key={e.id} type="button"
                   onClick={() => selectEmployee(e)}
                   className="w-full text-left px-3 py-2 text-sm hover:bg-penfix-surface-muted border-b border-penfix-border last:border-0">
-                  {e.full_name} <span className="text-penfix-text-muted text-xs">({e.team === 'creative' ? 'Creative' : 'Production'})</span>
+                  {titleCase(e.full_name)} <span className="text-penfix-text-muted text-xs">({e.team === 'creative' ? 'Creative' : 'Production'})</span>
                 </button>
               ))}
             </div>

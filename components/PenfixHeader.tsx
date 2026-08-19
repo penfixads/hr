@@ -1,12 +1,73 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { createOsAuthBrowserClient } from '@/lib/os-auth-browser'
+import { supabase } from '@/lib/supabase'
+import { titleCase } from '@/lib/text'
+
 // Same wordmark treatment (Cormorant Garamond + uppercase tracking) and chrome color
 // as Penfix OS's sidebar (jobs.penfixads.com) — one shared visual identity across the
 // *.penfixads.com apps. The "HR" tag is the only thing that tells staff which app of
 // the suite they're in, since the SSO session carries across all of them.
+//
+// This stays a client component (some pages that render it — app/admin/page.tsx,
+// app/admin/assess/page.tsx — are themselves client components, and a Client
+// Component can't render an async Server Component directly). So the logged-in
+// name is resolved with a small client-side lookup mirroring
+// lib/employee-session.ts's getCurrentEmployee, rather than reusing it server-side.
 export default function PenfixHeader({ subtitle }: { subtitle?: string }) {
+  const pathname = usePathname()
+  const isHome = pathname === '/'
+  const [displayName, setDisplayName] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    async function load() {
+      const { data: { user } } = await createOsAuthBrowserClient().auth.getUser()
+      if (!user?.email || cancelled) return
+      const { data } = await supabase
+        .from('employees')
+        .select('full_name')
+        .ilike('email', user.email)
+        .maybeSingle()
+      if (cancelled) return
+      // full_name falls back to the login email when there's no matching employee
+      // row — skip the badge rather than show a raw email.
+      const name = (data as { full_name?: string } | null)?.full_name
+      setDisplayName(name ? titleCase(name) : null)
+    }
+    load()
+    return () => { cancelled = true }
+  }, [])
+
   return (
-    <header style={{ backgroundColor: '#4A0000' }} className="text-white shadow-lg">
+    <header style={{ backgroundColor: '#4A0000' }} className="relative text-white shadow-lg">
+      {!isHome && (
+        <Link
+          href="/" title="Home"
+          className="absolute top-3 left-4 sm:top-4 sm:left-6 p-1.5 rounded-lg transition hover:opacity-80"
+          style={{ border: '1px solid #C9A84C' }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#D9BB6E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9.5 12 3l9 6.5" />
+            <path d="M5 9.5V20a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1V9.5" />
+          </svg>
+        </Link>
+      )}
+      {displayName && (
+        <div
+          className="hidden sm:flex items-center gap-1.5 absolute top-4 right-6 text-xs"
+          style={{ color: '#D9BB6E' }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21a8 8 0 0 0-16 0" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          <span className="font-medium">{displayName}</span>
+        </div>
+      )}
       <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col items-center gap-1">
         <div className="flex items-center gap-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}

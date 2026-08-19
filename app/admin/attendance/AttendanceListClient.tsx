@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import AttendancePunchCard from '@/components/AttendancePunchCard'
 import type { PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
+import { titleCase } from '@/lib/text'
 
 const MAROON = '#D9BB6E'
 
@@ -32,7 +33,7 @@ export default function AttendanceListClient({ entries }: { entries: Entry[] }) 
             <details key={employee.id} open className="bg-penfix-card rounded-xl border shadow-sm p-6 group">
               <summary className="flex items-center justify-between cursor-pointer list-none mb-4 pb-2 border-b">
                 <div className="flex items-center gap-3">
-                  <h3 className="font-bold text-base" style={{ color: MAROON }}>{employee.full_name}</h3>
+                  <h3 className="font-bold text-base" style={{ color: MAROON }}>{titleCase(employee.full_name)}</h3>
                   <span className="text-xs text-penfix-text-muted capitalize">{employee.team} · {employee.employment_status}</span>
                 </div>
                 <div className="flex items-center gap-3">
