@@ -82,6 +82,10 @@ export function StatusBadge({ status }: { status: string }) {
 export default function EmployeeRecordSummary({ mode, employee, records, leaveBalances, payPeriod, nextPayday, attendance, absentDays }: Props) {
   const possessive = mode === 'self' ? 'Your' : `${titleCase(employee.full_name)}'s`
 
+  // ot_date is a plain 'YYYY-MM-DD' the employee typed into the Overtime form — same
+  // format as a DayGroup's dateKey, so a direct Set lookup is enough, no date-shifting.
+  const filedOtDateKeys = new Set(records.overtimes.map(o => o.ot_date))
+
   return (
     <>
       {/* Attendance */}
@@ -92,6 +96,7 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
           leadingStat={{ label: 'Upcoming Payday', value: formatOfficeDate(nextPayday) }}
           isAdmin={mode === 'admin'}
           userEmail={employee.email}
+          filedOtDateKeys={filedOtDateKeys}
         />
       </Card>
 

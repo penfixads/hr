@@ -21,9 +21,15 @@ type Props = {
   // this employee's behalf, distinct from the admin's own session email). Not needed unless
   // isAdmin is also true.
   userEmail?: string
+  // Every overtime_requests.ot_date this employee has on file, as plain 'YYYY-MM-DD' — lets
+  // each day's "Extra punches" section show whether that punched OT has actually been filed
+  // yet. Undefined (not just empty) means the caller didn't fetch overtime_requests at all
+  // (e.g. the roster page's per-row card) — the badge is omitted rather than shown as
+  // "Not yet filed" for every day, which would be misleading.
+  filedOtDateKeys?: Set<string>
 }
 
-export default function AttendancePunchCard({ attendance, absentDays, leadingStat, isAdmin, userEmail }: Props) {
+export default function AttendancePunchCard({ attendance, absentDays, leadingStat, isAdmin, userEmail, filedOtDateKeys }: Props) {
   return (
     <>
       <div className="flex flex-wrap gap-8 mb-4">
@@ -145,8 +151,17 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                 </div>
                 {day.extraPunches.length > 0 && (
                   <div className="mt-2 pt-2 border-t border-penfix-border">
-                    <p className="text-xs font-medium text-green-700 mb-1">
-                      Extra punches after this day&apos;s Login–Logout{day.overtimeMinutes > 0 && ` — ${formatDecimalHours(day.overtimeMinutes)} counted as Overtime`}
+                    <p className="text-xs font-medium text-green-700 mb-1 flex items-center gap-2 flex-wrap">
+                      <span>
+                        Extra punches after this day&apos;s Login–Logout{day.overtimeMinutes > 0 && ` — ${formatDecimalHours(day.overtimeMinutes)} counted as Overtime`}
+                      </span>
+                      {filedOtDateKeys && (
+                        filedOtDateKeys.has(day.dateKey) ? (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-green-100 text-green-700">Filed</span>
+                        ) : (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-700">Not yet filed — pending Overtime request</span>
+                        )
+                      )}
                     </p>
                     <div className="flex flex-wrap gap-2">
                       {day.extraPunches.map((row, i) => (
