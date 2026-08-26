@@ -218,6 +218,26 @@ export function formatMinutes(total: number): string {
   return pluralUnit(m, 'min')
 }
 
+// The terminal's determineNextPunch (attendance/lib/attendance-cycle.ts) labels a punch
+// purely by COUNT that day — the 2nd punch is always 'lunchout', never by clock time. An
+// employee who skips the morning and punches in during early afternoon then has their
+// second (and only other) punch stored as 'lunchout' even when it's really them leaving
+// for the day — e.g. Login 1:04pm / "Lunch Out" 5:01pm, which then displays as "Missing
+// After Lunch In, Logout" instead of a plain Login/Logout half-day (found 2026-08-27).
+// Reinterprets that one specific shape for DISPLAY only: a day with just Login + a second
+// punch, where that second punch falls at/after LATE_SECOND_PUNCH_HOUR, is shown as
+// Login/Logout instead. Deliberately narrow — three or four punches already follow the
+// normal order in the overwhelming majority of real days, so only the two-punch case gets
+// second-guessed. Doesn't touch the stored punch_type or the terminal that assigns it.
+const LATE_SECOND_PUNCH_HOUR = 14 // 2:00 PM office-local — see comment above
+
+function reinterpretLateSecondPunchAsLogout(group: DayGroup): void {
+  if (!group.steps.login || !group.steps.lunchout || group.steps.afterlunchin || group.steps.logout) return
+  if (officeLocalMinutes(group.steps.lunchout.created_at) < LATE_SECOND_PUNCH_HOUR * 60) return
+  group.steps.logout = group.steps.lunchout
+  group.steps.lunchout = null
+}
+
 // Groups punches by office-local calendar day, most recent first — ported from
 // attendance/app/my-logs/MyLogsClient.tsx's grouping logic.
 //
@@ -271,6 +291,8 @@ export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
   }
 
   for (const group of byDate.values()) {
+    reinterpretLateSecondPunchAsLogout(group)
+
     const lunchOutIso = group.steps.lunchout?.created_at ?? null
     for (const step of PUNCH_SEQUENCE) {
       const row = group.steps[step]
