@@ -1,4 +1,4 @@
-import { PUNCH_SEQUENCE, PUNCH_LABELS, formatDecimalHours, type PayPeriodAttendanceSummary, type PunchType } from '@/lib/attendance-shared'
+import { PUNCH_SEQUENCE, PUNCH_LABELS, formatDecimalHours, type PayPeriodAttendanceSummary, type AnyPunchType, type MissingDayEntry } from '@/lib/attendance-shared'
 import AttendancePunchRowActions from '@/components/AttendancePunchRowActions'
 import AttendancePunchAddAction from '@/components/AttendancePunchAddAction'
 import AttendanceAddPunchButton from '@/components/AttendanceAddPunchButton'
@@ -27,9 +27,22 @@ type Props = {
   // (e.g. the roster page's per-row card) — the badge is omitted rather than shown as
   // "Not yet filed" for every day, which would be misleading.
   filedOtDateKeys?: Set<string>
+  // Workdays this period with zero punches at all — see computeMissingDays. Undefined (not
+  // just empty) means the caller didn't compute it (e.g. the self-service page), same
+  // "omit rather than show for nobody" convention as filedOtDateKeys above — a day with no
+  // punches then renders as no row at all, same as before this prop existed.
+  missingDays?: MissingDayEntry[]
 }
 
-export default function AttendancePunchCard({ attendance, absentDays, leadingStat, isAdmin, userEmail, filedOtDateKeys }: Props) {
+export default function AttendancePunchCard({ attendance, absentDays, leadingStat, isAdmin, userEmail, filedOtDateKeys, missingDays }: Props) {
+  // Merge real punch days with zero-punch placeholder rows into one chronological
+  // (most-recent-first, matching groupLogsByDay's own order) list, so a day with no record
+  // at all still shows up instead of silently having no row.
+  type DisplayEntry = { dateKey: string; group: (typeof attendance.dayGroups)[number] | null; hasLeave: boolean }
+  const displayEntries: DisplayEntry[] = [
+    ...attendance.dayGroups.map(group => ({ dateKey: group.dateKey, group, hasLeave: false })),
+    ...(missingDays ?? []).map(m => ({ dateKey: m.dateKey, group: null, hasLeave: m.hasLeave })),
+  ].sort((a, b) => (a.dateKey < b.dateKey ? 1 : a.dateKey > b.dateKey ? -1 : 0))
   return (
     <>
       <div className="flex flex-wrap gap-8 mb-4">
@@ -78,17 +91,28 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
       </div>
       <p className="text-xs text-penfix-text-muted mb-4 -mt-2">
         Undertime hours here are derived from early logouts only — separate from any approved undertime request on file.
-        Overtime hours here are derived from extra punches after the day&apos;s Login–Logout is already complete — separate from any filed Overtime request.
+        Overtime hours here are derived from punched OT In/OT Out pairs after the day&apos;s Login–Logout is already complete — separate from any filed Overtime request, which is what payroll actually pays.
         Absent Days assumes Sunday off and every other day worked, excluding company holidays and filed Leave dates — today and future dates are never counted. A day punched for only the morning or only the afternoon counts as 0.5.
       </p>
 
       {isAdmin && userEmail && <AttendanceAddPunchButton userEmail={userEmail} />}
 
-      {attendance.dayGroups.length === 0 ? (
+      {displayEntries.length === 0 ? (
         <p className="text-sm text-penfix-text-muted">No punches recorded yet this pay period.</p>
       ) : (
         <div className="flex flex-col gap-3">
-          {attendance.dayGroups.map(day => {
+          {displayEntries.map(entry => {
+            if (!entry.group) {
+              return (
+                <div key={entry.dateKey} className="border border-dashed border-red-200 bg-red-50/30 rounded-lg p-3 flex justify-between items-center">
+                  <p className="text-sm font-semibold text-foreground">{entry.dateKey}</p>
+                  <p className={`text-xs font-semibold ${entry.hasLeave ? 'text-amber-700' : 'text-red-700'}`}>
+                    {entry.hasLeave ? 'Absent — Leave filed' : 'Absent — No leave filed'}
+                  </p>
+                </div>
+              )
+            }
+            const day = entry.group
             const missing = PUNCH_SEQUENCE.filter(step => !day.steps[step])
             return (
               <div key={day.dateKey} className="border border-penfix-border rounded-lg p-3">
@@ -149,11 +173,11 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                     )
                   })}
                 </div>
-                {day.extraPunches.length > 0 && (
+                {day.otPunches.length > 0 && (
                   <div className="mt-2 pt-2 border-t border-penfix-border">
                     <p className="text-xs font-medium text-green-700 mb-1 flex items-center gap-2 flex-wrap">
                       <span>
-                        Extra punches after this day&apos;s Login–Logout{day.overtimeMinutes > 0 && ` — ${formatDecimalHours(day.overtimeMinutes)} counted as Overtime`}
+                        OT punches{day.overtimeMinutes > 0 && ` — ${formatDecimalHours(day.overtimeMinutes)} counted as Overtime`}
                       </span>
                       {filedOtDateKeys && (
                         filedOtDateKeys.has(day.dateKey) ? (
@@ -164,18 +188,36 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
                       )}
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {day.extraPunches.map((row, i) => (
+                      {day.otPunches.map(row => (
                         <div key={row.id} className="border border-green-100 bg-green-50/50 rounded-lg px-2 py-1 text-xs flex items-center gap-1">
-                          <span className="text-penfix-text-muted">{i % 2 === 0 ? 'In' : 'Out'}</span>
+                          <span className="text-penfix-text-muted">{PUNCH_LABELS[row.punch_type as AnyPunchType]}</span>
                           <span className="font-medium">
                             {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' })}
                           </span>
-                          {isAdmin && <AttendancePunchRowActions id={row.id} punchType={row.punch_type as PunchType} createdAtIso={row.created_at} />}
+                          {isAdmin && <AttendancePunchRowActions id={row.id} punchType={row.punch_type as AnyPunchType} createdAtIso={row.created_at} />}
                         </div>
                       ))}
-                      {day.extraPunches.length % 2 === 1 && (
+                      {day.otPunches.length % 2 === 1 && (
                         <span className="text-xs text-penfix-text-muted self-center">last one has no closing punch yet — not counted</span>
                       )}
+                    </div>
+                  </div>
+                )}
+                {day.extraPunches.length > 0 && (
+                  <div className="mt-2 pt-2 border-t border-penfix-border">
+                    <p className="text-xs font-medium text-red-700 mb-1">
+                      Extra punches of an already-filled step — review for a duplicate/misaligned scan
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {day.extraPunches.map(row => (
+                        <div key={row.id} className="border border-red-100 bg-red-50/50 rounded-lg px-2 py-1 text-xs flex items-center gap-1">
+                          <span className="text-penfix-text-muted">{PUNCH_LABELS[row.punch_type as AnyPunchType]}</span>
+                          <span className="font-medium">
+                            {new Date(row.created_at).toLocaleTimeString('en-PH', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Manila' })}
+                          </span>
+                          {isAdmin && <AttendancePunchRowActions id={row.id} punchType={row.punch_type as AnyPunchType} createdAtIso={row.created_at} />}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}

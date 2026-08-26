@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import AttendancePunchCard from '@/components/AttendancePunchCard'
-import type { PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
+import type { PayPeriodAttendanceSummary, MissingDayEntry } from '@/lib/attendance-shared'
 import { titleCase } from '@/lib/text'
 
 const MAROON = '#D9BB6E'
@@ -12,6 +12,7 @@ type Entry = {
   employee: { id: string; full_name: string; email: string; employment_status: string; team: string }
   attendance: PayPeriodAttendanceSummary
   absentDays: number
+  missingDays: MissingDayEntry[]
 }
 
 export default function AttendanceListClient({ entries }: { entries: Entry[] }) {
@@ -29,7 +30,7 @@ export default function AttendanceListClient({ entries }: { entries: Entry[] }) 
         <div className="bg-penfix-card rounded-xl border shadow-sm p-12 text-center text-penfix-text-muted">No employees found.</div>
       ) : (
         <div className="flex flex-col gap-4">
-          {filtered.map(({ employee, attendance, absentDays }) => (
+          {filtered.map(({ employee, attendance, absentDays, missingDays }) => (
             <details key={employee.id} open className="bg-penfix-card rounded-xl border shadow-sm p-6 group">
               <summary className="flex items-center justify-between cursor-pointer list-none mb-4 pb-2 border-b">
                 <div className="flex items-center gap-3">
@@ -43,7 +44,7 @@ export default function AttendanceListClient({ entries }: { entries: Entry[] }) 
                   <span className="text-xs text-penfix-text-muted transition-transform group-open:rotate-180">▾</span>
                 </div>
               </summary>
-              <AttendancePunchCard attendance={attendance} absentDays={absentDays} isAdmin userEmail={employee.email} />
+              <AttendancePunchCard attendance={attendance} absentDays={absentDays} isAdmin userEmail={employee.email} missingDays={missingDays} />
             </details>
           ))}
         </div>

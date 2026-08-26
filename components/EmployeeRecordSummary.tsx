@@ -1,6 +1,7 @@
 import { fifteenPointBand } from '@/lib/fifteenPoint'
 import { formatOfficeDate, type PayPeriod } from '@/lib/payday'
-import type { PayPeriodAttendanceSummary } from '@/lib/attendance'
+import { computeMissingDays, expandLeaveDateKeys, type PayPeriodAttendanceSummary } from '@/lib/attendance'
+import { getOfficeDateKey } from '@/lib/office-time'
 import type { EmployeeRecords } from '@/lib/employee-records'
 import type { LeaveBalance } from '@/lib/leave'
 import RequestApprovalActions from '@/components/RequestApprovalActions'
@@ -86,6 +87,14 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
   // format as a DayGroup's dateKey, so a direct Set lookup is enough, no date-shifting.
   const filedOtDateKeys = new Set(records.overtimes.map(o => o.ot_date))
 
+  // Admin-only, same as the punch Edit/Delete/Add controls: zero-punch days rendered as
+  // explicit "Absent" placeholder rows instead of silently having no row at all. Left
+  // undefined for mode="self" — AttendancePunchCard already treats undefined as "the caller
+  // didn't compute this," matching filedOtDateKeys' convention.
+  const missingDays = mode === 'admin'
+    ? computeMissingDays(payPeriod.start, payPeriod.end, attendance.dayGroups, expandLeaveDateKeys(records.leaves), getOfficeDateKey(new Date()))
+    : undefined
+
   return (
     <>
       {/* Attendance */}
@@ -97,6 +106,7 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
           isAdmin={mode === 'admin'}
           userEmail={employee.email}
           filedOtDateKeys={filedOtDateKeys}
+          missingDays={missingDays}
         />
       </Card>
 

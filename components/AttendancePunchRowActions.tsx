@@ -3,13 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toOfficeLocal, officeLocalToUTC } from '@/lib/office-time'
-import { PUNCH_SEQUENCE, PUNCH_LABELS, type PunchType } from '@/lib/attendance-shared'
+import { ALL_PUNCH_TYPES, PUNCH_LABELS, type AnyPunchType } from '@/lib/attendance-shared'
 
 const MAROON = '#4A0000'
 
 type Props = {
   id: string
-  punchType: PunchType
+  punchType: AnyPunchType
   createdAtIso: string
 }
 
@@ -30,7 +30,7 @@ export default function AttendancePunchRowActions({ id, punchType, createdAtIso 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const initial = toOfficeLocalParts(createdAtIso)
-  const [step, setStep] = useState<PunchType>(punchType)
+  const [step, setStep] = useState<AnyPunchType>(punchType)
   const [date, setDate] = useState(initial.date)
   const [time, setTime] = useState(initial.time)
 
@@ -69,9 +69,9 @@ export default function AttendancePunchRowActions({ id, punchType, createdAtIso 
   if (editing) {
     return (
       <div className="mt-1 flex flex-col gap-1">
-        <select value={step} onChange={e => setStep(e.target.value as PunchType)}
+        <select value={step} onChange={e => setStep(e.target.value as AnyPunchType)}
           className="border border-penfix-border rounded px-1 py-0.5 text-xs">
-          {PUNCH_SEQUENCE.map(s => <option key={s} value={s}>{PUNCH_LABELS[s]}</option>)}
+          {ALL_PUNCH_TYPES.map(s => <option key={s} value={s}>{PUNCH_LABELS[s]}</option>)}
         </select>
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
           className="border border-penfix-border rounded px-1 py-0.5 text-xs" />

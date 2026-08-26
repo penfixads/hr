@@ -2,7 +2,7 @@ import Link from 'next/link'
 import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import { supabase } from '@/lib/supabase'
-import { getAttendanceLogsForEmployees, summarizePayPeriod, computeAbsentDays, sumAbsentDays } from '@/lib/attendance'
+import { getAttendanceLogsForEmployees, summarizePayPeriod, computeAbsentDays, sumAbsentDays, computeMissingDays } from '@/lib/attendance'
 import { getLeaveDateKeysForEmployees, officeCalendarDate } from '@/lib/employee-records'
 import { getCurrentPayPeriod } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
@@ -32,11 +32,10 @@ export default async function AdminAttendancePage() {
 
   const entries = employees.map(emp => {
     const attendance = summarizePayPeriod(logsByEmail[emp.email] ?? [], todayKey)
-    const absentDays = sumAbsentDays(computeAbsentDays(
-      payPeriod.start, payPeriod.end, attendance.dayGroups,
-      leaveDateKeysByEmployee[emp.id] ?? new Set<string>(), todayKey
-    ))
-    return { employee: emp, attendance, absentDays }
+    const leaveDateKeys = leaveDateKeysByEmployee[emp.id] ?? new Set<string>()
+    const absentDays = sumAbsentDays(computeAbsentDays(payPeriod.start, payPeriod.end, attendance.dayGroups, leaveDateKeys, todayKey))
+    const missingDays = computeMissingDays(payPeriod.start, payPeriod.end, attendance.dayGroups, leaveDateKeys, todayKey)
+    return { employee: emp, attendance, absentDays, missingDays }
   })
 
   return (

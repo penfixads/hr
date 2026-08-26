@@ -1,7 +1,7 @@
 import { cookies, headers } from 'next/headers'
 import { createServerClient } from '@supabase/ssr'
 import { getCookieDomain } from '@/lib/cookie-domain'
-import { evaluatePunchLateness, type AttendanceLogRow, type PunchType } from '@/lib/attendance-shared'
+import { evaluatePunchLateness, type AttendanceLogRow, type AnyPunchType } from '@/lib/attendance-shared'
 
 // Re-exported so existing server-side importers (app/my-records/page.tsx,
 // app/admin/employee/[id]/page.tsx, components/EmployeeRecordSummary.tsx) can keep
@@ -95,7 +95,7 @@ export async function getAttendanceLogsForEmployees(emails: string[], since: Dat
 // stops a non-admin's write, but the route should 401 before even attempting it.
 export async function updateAttendanceLog(
   id: string,
-  punchType: PunchType,
+  punchType: AnyPunchType,
   createdAtIso: string,
   editedBy: string
 ): Promise<{ error: string | null }> {
@@ -132,7 +132,7 @@ export async function deleteAttendanceLog(id: string): Promise<{ error: string |
 // apply here since the caller is an Admin filling in for someone else.
 export async function createAttendanceLog(
   userEmail: string,
-  punchType: PunchType,
+  punchType: AnyPunchType,
   createdAtIso: string,
   recordedBy: string
 ): Promise<{ error: string | null }> {

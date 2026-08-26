@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { officeLocalToUTC } from '@/lib/office-time'
-import { PUNCH_SEQUENCE, PUNCH_LABELS, type PunchType } from '@/lib/attendance-shared'
+import { ALL_PUNCH_TYPES, PUNCH_LABELS, type AnyPunchType } from '@/lib/attendance-shared'
 
 const MAROON = '#4A0000'
 
@@ -20,7 +20,7 @@ export default function AttendanceAddPunchButton({ userEmail }: { userEmail: str
   const [error, setError] = useState('')
   const [date, setDate] = useState('')
   const [time, setTime] = useState('')
-  const [step, setStep] = useState<PunchType>('login')
+  const [step, setStep] = useState<AnyPunchType>('login')
 
   async function save() {
     if (!date || !time) { setError('Pick a date and time.'); return }
@@ -66,9 +66,9 @@ export default function AttendanceAddPunchButton({ userEmail }: { userEmail: str
       </label>
       <label className="flex flex-col gap-1">
         <span className="text-xs text-penfix-text-muted">Punch</span>
-        <select value={step} onChange={e => setStep(e.target.value as PunchType)}
+        <select value={step} onChange={e => setStep(e.target.value as AnyPunchType)}
           className="border border-penfix-border rounded px-2 py-1 text-sm">
-          {PUNCH_SEQUENCE.map(s => <option key={s} value={s}>{PUNCH_LABELS[s]}</option>)}
+          {ALL_PUNCH_TYPES.map(s => <option key={s} value={s}>{PUNCH_LABELS[s]}</option>)}
         </select>
       </label>
       <label className="flex flex-col gap-1">

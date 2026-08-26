@@ -9,16 +9,26 @@ import { PH_HOLIDAYS } from '@/lib/ph-holidays'
 export const PUNCH_SEQUENCE = ['login', 'lunchout', 'afterlunchin', 'logout'] as const
 export type PunchType = (typeof PUNCH_SEQUENCE)[number]
 
-export const PUNCH_LABELS: Record<PunchType, string> = {
+// Punches beyond the 4-step daily cycle: filed OT re-entry after the normal 5pm logout.
+// Mirrors attendance/lib/attendance-cycle.ts's OT_PUNCH_TYPES/AnyPunchType/ALL_PUNCH_TYPES —
+// kept in sync manually, same as PUNCH_SEQUENCE/PUNCH_LABELS above.
+export const OT_PUNCH_TYPES = ['ot_in', 'ot_out'] as const
+export type OtPunchType = (typeof OT_PUNCH_TYPES)[number]
+export type AnyPunchType = PunchType | OtPunchType
+export const ALL_PUNCH_TYPES: readonly AnyPunchType[] = [...PUNCH_SEQUENCE, ...OT_PUNCH_TYPES]
+
+export const PUNCH_LABELS: Record<AnyPunchType, string> = {
   login: 'Login',
   lunchout: 'Lunch Out',
   afterlunchin: 'After Lunch In',
   logout: 'Logout',
+  ot_in: 'OT In',
+  ot_out: 'OT Out',
 }
 
 export type AttendanceLogRow = {
   id: string
-  punch_type: PunchType | 'in' | 'out'
+  punch_type: AnyPunchType | 'in' | 'out'
   is_flagged: boolean
   flag_reason: string | null
   place_name: string | null
@@ -41,15 +51,23 @@ export type DayGroup = {
   lateCount: number
   lateMinutes: number
   undertimeMinutes: number
-  // Punches beyond each step's first occurrence that day — an employee who already
-  // completed Login→Lunch Out→After Lunch In→Logout and then punches again (staying for
-  // unplanned work) instead of filing an Overtime request. Kept separate from `steps`
-  // rather than overwriting it: see groupLogsByDay's comment for why last-write-wins
-  // used to silently corrupt the day's real Login/Logout.
+  // Genuine anomalies only now — a real duplicate of one of the 4 core steps (e.g. two
+  // 'login' rows same day). OT re-entries used to land here too (see otPunches below for
+  // why that was a bug) but as of the ot_in/ot_out punch types they're classified
+  // separately and never fall into this bucket.
   extraPunches: AttendanceLogRow[]
-  // Sum of (extraPunches[0]→[1]) + ([2]→[3]) + ... — consecutive extra punches paired
-  // chronologically into worked stretches. A trailing unpaired punch (still clocked in,
-  // or its closing punch never came) isn't counted.
+  // OT re-entries for the day (punch_type 'ot_in'/'ot_out'), chronological. Before
+  // ot_in/ot_out existed, any punch past the 4th was lumped into extraPunches and paired
+  // blindly — including, on unlucky sequence positions, punches the OLD determineNextPunch
+  // mislabeled 'login' by wrapping mod 4, which silently overwrote the day's real Login
+  // (found 2026-08-14, see below). Filtering on the dedicated OT punch type instead of
+  // "whatever came after the 4th punch" is what actually fixes that class of bug.
+  otPunches: AttendanceLogRow[]
+  // Sum of (otPunches[0]→[1]) + ([2]→[3]) + ... — consecutive ot_in/ot_out pairs, paired
+  // chronologically into worked stretches. A trailing unpaired ot_in (still clocked in for
+  // OT, or its ot_out never came) isn't counted. This is a supporting/display figure only —
+  // payroll pays the FILED overtime_requests hours, not these punch-derived minutes (user
+  // decision 2026-08-26, see payroll-attendance-reconciliation-rules memory).
   overtimeMinutes: number
 }
 
@@ -105,7 +123,7 @@ function hhmm(minutesFromMidnight: number): string {
 // `lunchOutIso` is that day's Lunch Out punch — required to grade an After Lunch In. When
 // absent the break can't be measured, so the punch is left unflagged rather than guessed at.
 export function evaluatePunch(
-  step: PunchType,
+  step: AnyPunchType,
   createdAtIso: string,
   lunchOutIso?: string | null
 ): PunchEvaluation {
@@ -139,6 +157,11 @@ export function evaluatePunch(
     }
   }
 
+  // ot_in/ot_out — filed OT re-entry, not scheduled against any clock time, so never late
+  // or undertime here. Must be checked before the logout fallthrough below, which otherwise
+  // assumes every non-core step is a logout and would wrongly grade OT punches against 17:00.
+  if (step === 'ot_in' || step === 'ot_out') return NO_DEVIATION
+
   // logout
   const early = LOGOUT_EXPECTED_MINUTES - actual
   if (early <= 0) return NO_DEVIATION
@@ -165,7 +188,7 @@ function officeLocalMinutes(iso: string): number {
 // Lunch In stores no flag. Display doesn't depend on it: groupLogsByDay below recomputes
 // every punch with the day's Lunch Out to hand.
 export function evaluatePunchLateness(
-  step: PunchType,
+  step: AnyPunchType,
   createdAtIso: string,
   lunchOutIso?: string | null
 ): { isFlagged: boolean; reason: string | null } {
@@ -207,6 +230,11 @@ export function formatMinutes(total: number): string {
 // which then got graded as a huge "Late Login" against the 08:00 line instead of
 // crediting the extra hours worked (found 2026-08-14 on a real employee's record, whose
 // Late Hours read 13h57m because their evening OT punch had replaced their actual login).
+// That specific mislabeling can no longer happen for NEW punches — the terminal's
+// determineNextPunch (attendance/lib/attendance-cycle.ts) stopped wrapping back to
+// 'login' at the 5th+ punch and labels OT re-entries ot_in/ot_out instead (see otPunches
+// below) — but this first-occurrence-wins guard stays as defense in depth for old rows
+// and any other duplicate-step scenario.
 //
 // Two passes: After Lunch In is graded against that day's Lunch Out, which isn't
 // necessarily assigned yet while the first pass is still walking the rows (an Admin can
@@ -228,6 +256,7 @@ export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
         lateMinutes: 0,
         undertimeMinutes: 0,
         extraPunches: [],
+        otPunches: [],
         overtimeMinutes: 0,
       })
     }
@@ -236,6 +265,8 @@ export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
       const step = row.punch_type as PunchType
       if (!group.steps[step]) group.steps[step] = row
       else group.extraPunches.push(row)
+    } else if (row.punch_type === 'ot_in' || row.punch_type === 'ot_out') {
+      group.otPunches.push(row)
     }
   }
 
@@ -251,9 +282,9 @@ export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
       group.undertimeMinutes += evaluation.undertimeMinutes
     }
 
-    for (let i = 0; i + 1 < group.extraPunches.length; i += 2) {
-      const startMs = Date.parse(group.extraPunches[i].created_at)
-      const endMs = Date.parse(group.extraPunches[i + 1].created_at)
+    for (let i = 0; i + 1 < group.otPunches.length; i += 2) {
+      const startMs = Date.parse(group.otPunches[i].created_at)
+      const endMs = Date.parse(group.otPunches[i + 1].created_at)
       if (endMs > startMs) group.overtimeMinutes += Math.round((endMs - startMs) / 60000)
     }
   }
@@ -357,6 +388,40 @@ export function computeAbsentDays(
 // Total absent days counting a half-day as 0.5 — what the Absent Days stat displays.
 export function sumAbsentDays(absences: AbsenceEntry[]): number {
   return absences.reduce((sum, a) => sum + (a.half ? 0.5 : 1), 0)
+}
+
+export type MissingDayEntry = { dateKey: string; hasLeave: boolean }
+
+// Same walk as computeAbsentDays above, but for DISPLAY rather than the Absent Days stat:
+// every calendar date in [periodStart, periodEnd] that was expected to be worked and has
+// zero punches at all, tagged with whether a filed Leave covers it. Unlike computeAbsentDays
+// — which drops a leave-covered date entirely, since it isn't a countable absence — this
+// keeps it, just tagged, so AttendancePunchCard can render an explicit "Absent — Leave
+// filed" row instead of the date silently having no row at all (a day with no punches never
+// gets a DayGroup in groupLogsByDay, so without this it's invisible on the list — found
+// 2026-08-27, admin asking "where's Aug 15" with no record to point at). Half-day absences
+// aren't included here — those already have a real DayGroup with a "Missing X, Y" label, so
+// they're already visible without help.
+export function computeMissingDays(
+  periodStart: Date,
+  periodEnd: Date,
+  dayGroups: DayGroup[],
+  leaveDateKeys: Set<string>,
+  todayKey: string
+): MissingDayEntry[] {
+  const groupByDate = new Map(dayGroups.map(g => [g.dateKey, g]))
+  const missing: MissingDayEntry[] = []
+  const oneDayMs = 24 * 60 * 60 * 1000
+  for (let t = periodStart.getTime(); t <= periodEnd.getTime(); t += oneDayMs) {
+    const local = new Date(t + 8 * 60 * 60 * 1000)
+    const dateKey = officeCalendarDateKey(new Date(t))
+    if (dateKey >= todayKey) continue
+    if (local.getUTCDay() === REST_DAY_OF_WEEK) continue
+    if (dateKey in PH_HOLIDAYS) continue
+    if (groupByDate.has(dateKey)) continue
+    missing.push({ dateKey, hasLeave: leaveDateKeys.has(dateKey) })
+  }
+  return missing
 }
 
 // Expands an employee's leave_requests into the set of individual dates they cover, for

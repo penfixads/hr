@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAdminSession } from '@/lib/admin-auth'
 import { updateAttendanceLog, deleteAttendanceLog, createAttendanceLog } from '@/lib/attendance'
-import { PUNCH_SEQUENCE, type PunchType } from '@/lib/attendance-shared'
+import { ALL_PUNCH_TYPES, type AnyPunchType } from '@/lib/attendance-shared'
 
 // Admin-only add/correction/removal of a single attendance_logs punch — see
 // components/AttendancePunchRowActions.tsx (edit/delete) and
@@ -19,11 +19,11 @@ export async function POST(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { user_email, punch_type, created_at } = await req.json()
-  if (!user_email || !(PUNCH_SEQUENCE as readonly string[]).includes(punch_type) || !created_at || isNaN(Date.parse(created_at))) {
+  if (!user_email || !(ALL_PUNCH_TYPES as readonly string[]).includes(punch_type) || !created_at || isNaN(Date.parse(created_at))) {
     return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
   }
 
-  const { error } = await createAttendanceLog(user_email, punch_type as PunchType, new Date(created_at).toISOString(), admin.email)
+  const { error } = await createAttendanceLog(user_email, punch_type as AnyPunchType, new Date(created_at).toISOString(), admin.email)
   if (error) return NextResponse.json({ error }, { status: 500 })
   return NextResponse.json({ success: true })
 }
@@ -33,11 +33,11 @@ export async function PATCH(req: NextRequest) {
   if (!admin) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id, punch_type, created_at } = await req.json()
-  if (!id || !(PUNCH_SEQUENCE as readonly string[]).includes(punch_type) || !created_at || isNaN(Date.parse(created_at))) {
+  if (!id || !(ALL_PUNCH_TYPES as readonly string[]).includes(punch_type) || !created_at || isNaN(Date.parse(created_at))) {
     return NextResponse.json({ error: 'Invalid request.' }, { status: 400 })
   }
 
-  const { error } = await updateAttendanceLog(id, punch_type as PunchType, new Date(created_at).toISOString(), admin.email)
+  const { error } = await updateAttendanceLog(id, punch_type as AnyPunchType, new Date(created_at).toISOString(), admin.email)
   if (error) return NextResponse.json({ error }, { status: 500 })
   return NextResponse.json({ success: true })
 }
