@@ -106,7 +106,11 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
               return (
                 <div key={entry.dateKey} className="border border-dashed border-red-200 bg-red-50/30 rounded-lg p-3 flex justify-between items-center">
                   <p className="text-sm font-semibold text-foreground">{entry.dateKey}</p>
-                  <p className={`text-xs font-semibold ${entry.hasLeave ? 'text-amber-700' : 'text-red-700'}`}>
+                  <p className="text-xs font-semibold text-white flex items-center gap-1.5">
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: entry.hasLeave ? '#fbbf24' : '#f87171' }}
+                    />
                     {entry.hasLeave ? 'Absent — Leave filed' : 'Absent — No leave filed'}
                   </p>
                 </div>
