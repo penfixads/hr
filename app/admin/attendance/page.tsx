@@ -6,6 +6,7 @@ import { getAttendanceLogsForEmployees, summarizePayPeriod, computeAbsentDays, s
 import { getLeaveDateKeysForEmployees, officeCalendarDate } from '@/lib/employee-records'
 import { getCurrentPayPeriod } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
+import { surnameKey } from '@/lib/text'
 import AttendanceListClient from './AttendanceListClient'
 
 // No dynamic route segment (unlike app/admin/employee/[id]), so without this Next
@@ -22,7 +23,11 @@ export default async function AdminAttendancePage() {
     .from('employees')
     .select('id, full_name, email, employment_status, team')
     .order('full_name', { ascending: true })
-  const employees = (data as Employee[]) ?? []
+  // Re-sorted by surname client-side — there's no separate surname column to order by
+  // in the query itself, and full_name is "First [Middle] Last", so the DB's own
+  // ascending order is first-name-first. See lib/text.ts's surnameKey for how the
+  // surname is picked out of the combined string.
+  const employees = ((data as Employee[] | null) ?? []).sort((a, b) => surnameKey(a.full_name).localeCompare(surnameKey(b.full_name)))
 
   const [logsByEmail, leaveDateKeysByEmployee] = await Promise.all([
     getAttendanceLogsForEmployees(employees.map(e => e.email).filter(Boolean), payPeriod.start, payPeriod.end),
