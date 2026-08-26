@@ -1,6 +1,16 @@
 import { fifteenPointBand } from '@/lib/fifteenPoint'
 import { formatOfficeDate, type PayPeriod } from '@/lib/payday'
-import { computeMissingDays, expandLeaveDateKeys, type PayPeriodAttendanceSummary } from '@/lib/attendance'
+// From attendance-shared, NOT attendance — this file is pulled into the client bundle (its
+// Card/EmptyRow/StatusBadge exports are reused by components/RequestsOverviewClient.tsx, a
+// 'use client' component), and lib/attendance.ts has a top-level `next/headers` import that
+// isn't valid there. attendance-shared.ts is deliberately the next/headers-free half (see its
+// own header comment) — the previous type-only import of PayPeriodAttendanceSummary from
+// lib/attendance got erased at compile time so this never mattered until computeMissingDays/
+// expandLeaveDateKeys added a real runtime import, which broke the prod Turbopack build with
+// "You're importing a module that depends on next/headers... in the Pages Router" (found
+// 2026-08-27 chasing why the Absent-day rows weren't showing after deploy — the deploy had
+// silently failed and Vercel kept serving the previous build).
+import { computeMissingDays, expandLeaveDateKeys, type PayPeriodAttendanceSummary } from '@/lib/attendance-shared'
 import { getOfficeDateKey } from '@/lib/office-time'
 import type { EmployeeRecords } from '@/lib/employee-records'
 import type { LeaveBalance } from '@/lib/leave'
