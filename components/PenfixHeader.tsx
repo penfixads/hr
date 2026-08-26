@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { createOsAuthBrowserClient } from '@/lib/os-auth-browser'
 import { supabase } from '@/lib/supabase'
 import { titleCase } from '@/lib/text'
@@ -19,8 +19,20 @@ import { titleCase } from '@/lib/text'
 // lib/employee-session.ts's getCurrentEmployee, rather than reusing it server-side.
 export default function PenfixHeader({ subtitle }: { subtitle?: string }) {
   const pathname = usePathname()
+  const router = useRouter()
   const isHome = pathname === '/'
   const [displayName, setDisplayName] = useState<string | null>(null)
+
+  // Cookie is scoped to .penfixads.com (lib/cookie-domain.ts), so this signs the
+  // user out of every Penfix app sharing the SSO session (payroll, attendance,
+  // Penfix OS itself), not just hr — same signOut() call payroll's own Sidebar
+  // uses, but payroll's cookie is host-scoped there so its sign-out stays local
+  // to payroll only (see payroll/lib/os-auth-browser.ts's own comment).
+  async function handleSignOut() {
+    await createOsAuthBrowserClient().auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -58,14 +70,23 @@ export default function PenfixHeader({ subtitle }: { subtitle?: string }) {
       )}
       {displayName && (
         <div
-          className="hidden sm:flex items-center gap-1.5 absolute top-4 right-6 text-xs"
+          className="hidden sm:flex items-center gap-3 absolute top-4 right-6 text-xs"
           style={{ color: '#D9BB6E' }}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20 21a8 8 0 0 0-16 0" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-          <span className="font-medium">{displayName}</span>
+          <div className="flex items-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21a8 8 0 0 0-16 0" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+            <span className="font-medium">{displayName}</span>
+          </div>
+          <button
+            onClick={handleSignOut}
+            className="font-semibold uppercase tracking-wide rounded border px-2 py-1 transition hover:bg-white/10"
+            style={{ borderColor: 'rgba(201,168,76,0.4)', fontSize: '0.65rem' }}
+          >
+            Sign Out
+          </button>
         </div>
       )}
       <div className="max-w-5xl mx-auto px-6 py-5 flex flex-col items-center gap-1">
