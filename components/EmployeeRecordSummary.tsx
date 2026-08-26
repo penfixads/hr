@@ -281,6 +281,36 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
         )}
       </Card>
 
+      {/* Late Excuse */}
+      <Card title="Late Excuse">
+        {records.lateExcuses.length === 0 ? <EmptyRow>{possessive} no late excuses filed yet.</EmptyRow> : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-xs text-penfix-text-muted border-b">
+                <th className="text-left py-2 pr-4 font-medium">Date</th>
+                <th className="text-center py-2 px-3 font-medium">Status</th>
+                <th className="text-left py-2 px-3 font-medium">Reason</th>
+                {mode === 'admin' && <th className="text-right py-2 pl-3 font-medium">Action</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {records.lateExcuses.map(le => (
+                <tr key={le.id} className="border-b border-penfix-border">
+                  <td className="py-2 pr-4 font-medium">{fmtDate(le.late_date)}</td>
+                  <td className="py-2 px-3 text-center"><StatusBadge status={le.status} /></td>
+                  <td className="py-2 px-3 text-penfix-text-muted">{le.reason || '—'}</td>
+                  {mode === 'admin' && (
+                    <td className="py-2 pl-3">
+                      <RequestApprovalActions requestId={le.id} requestType="late_excuse" status={le.status} />
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </Card>
+
       {/* Evaluations */}
       <Card title="15-Point Quarterly Evaluation History">
         {records.evaluations.length === 0 ? <EmptyRow>No quarterly self-evaluations submitted yet.</EmptyRow> : (

@@ -69,6 +69,32 @@ function CashAdvanceTable({ cashAdvances }: { cashAdvances: RequestsOverviewEmpl
   )
 }
 
+function LateExcuseTable({ lateExcuses }: { lateExcuses: RequestsOverviewEmployee['lateExcuses'] }) {
+  if (lateExcuses.length === 0) return <EmptyRow>No late excuses filed this period.</EmptyRow>
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="text-xs text-penfix-text-muted border-b">
+          <th className="text-left py-2 pr-4 font-medium">Date</th>
+          <th className="text-center py-2 px-3 font-medium">Status</th>
+          <th className="text-left py-2 px-3 font-medium">Reason</th>
+          <th className="text-right py-2 pl-3 font-medium">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {lateExcuses.map(le => (
+          <tr key={le.id} className="border-b border-penfix-border">
+            <td className="py-2 pr-4">{fmtDate(le.late_date)}</td>
+            <td className="py-2 px-3 text-center"><StatusBadge status={le.status} /></td>
+            <td className="py-2 px-3 text-penfix-text-muted">{le.reason || '—'}</td>
+            <td className="py-2 pl-3"><RequestApprovalActions requestId={le.id} requestType="late_excuse" status={le.status} /></td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  )
+}
+
 // HH:MM, trimmed from the "HH:MM:SS" the DB returns, so it drops straight into a
 // type="time" input without the seconds tripping up its value matching.
 function toTimeInputValue(t: string) {
@@ -280,13 +306,14 @@ export default function RequestsOverviewClient({ entries }: { entries: RequestsO
 
       {filtered.length === 0 ? (
         <div className="bg-penfix-card rounded-xl border shadow-sm p-12 text-center text-penfix-text-muted">
-          {entries.length === 0 ? 'No cash advance, loan, overtime, or leave requests this pay period.' : 'No employees found.'}
+          {entries.length === 0 ? 'No cash advance, loan, overtime, leave, or late excuse requests this pay period.' : 'No employees found.'}
         </div>
       ) : (
         <div className="flex flex-col gap-4">
           {filtered.map(entry => {
             const pendingCount = entry.cashAdvances.filter(c => c.status === 'Pending').length
               + entry.loans.filter(l => l.status === 'Pending').length
+              + entry.lateExcuses.filter(le => le.status === 'Pending').length
             return (
               <details key={entry.employeeId} open className="bg-penfix-card rounded-xl border shadow-sm p-6 group">
                 <summary className="flex items-center justify-between cursor-pointer list-none mb-4 pb-2 border-b">
@@ -302,6 +329,7 @@ export default function RequestsOverviewClient({ entries }: { entries: RequestsO
                         </span>
                       )}
                       {entry.leaves.length > 0 && <span>{countLabel(entry.leaves.length, 'leave filing')}</span>}
+                      {entry.lateExcuses.length > 0 && <span>{countLabel(entry.lateExcuses.length, 'late excuse')}</span>}
                     </div>
                     {pendingCount > 0 && (
                       <span className="text-xs font-semibold px-2 py-0.5 rounded-full" style={{ color: '#ca8a04', backgroundColor: '#ca8a041a' }}>
@@ -323,6 +351,9 @@ export default function RequestsOverviewClient({ entries }: { entries: RequestsO
                 )}
                 {entry.leaves.length > 0 && (
                   <Card title="Leave"><LeaveTable leaves={entry.leaves} /></Card>
+                )}
+                {entry.lateExcuses.length > 0 && (
+                  <Card title="Late Excuse"><LateExcuseTable lateExcuses={entry.lateExcuses} /></Card>
                 )}
               </details>
             )

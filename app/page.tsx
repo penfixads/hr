@@ -138,6 +138,7 @@ const FORMS: MenuItem[] = [
   { href: '/overtime', icon: '⏱️', iconSrc: '/images/myhricons/overtime.png', title: 'Overtime', description: 'File overtime worked.' },
   { href: '/leave', icon: '🌴', iconSrc: '/images/myhricons/leave.png', title: 'Leave', description: 'File sick or vacation leave.' },
   { href: '/undertime', icon: '⏳', iconSrc: '/images/myhricons/undertime.png', title: 'Undertime', description: 'File a late login or early logout.' },
+  { href: '/late-excuse', icon: '📝', title: 'Late Excuse', description: 'File a valid reason for a late login, for Admin review.' },
 ]
 
 const OTHER: MenuItem[] = [

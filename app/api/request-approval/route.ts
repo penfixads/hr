@@ -9,6 +9,7 @@ import { getAdminSession } from '@/lib/admin-auth'
 const TABLES = {
   cash_advance: 'cash_advance_requests',
   loan: 'loan_requests',
+  late_excuse: 'late_excuse_requests',
 } as const
 
 type RequestType = keyof typeof TABLES

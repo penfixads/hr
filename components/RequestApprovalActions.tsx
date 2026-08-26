@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-type RequestType = 'cash_advance' | 'loan'
+type RequestType = 'cash_advance' | 'loan' | 'late_excuse'
 
 type Props = {
   requestId: string

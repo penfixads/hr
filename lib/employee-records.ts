@@ -32,12 +32,21 @@ export type QuarterlyEvaluationRow = {
   id: string; quarter: string; year: number; total: number; percentage: number; submitted_at: string
 }
 
+// Approval-gated, same shape as CashAdvanceRow/LoanRow — see supabase/CATCHUP_late_excuse.sql.
+// Only an Approved row exempts late_date from payroll's Late Sanction Count.
+export type LateExcuseRow = {
+  id: string; late_date: string; reason: string
+  status: string; approved_by: string | null; resolved_at: string | null; reject_note: string | null
+  submitted_at: string
+}
+
 export type EmployeeRecords = {
   cashAdvances: CashAdvanceRow[]
   loans: LoanRow[]
   overtimes: OvertimeRow[]
   undertimes: UndertimeRow[]
   leaves: LeaveRow[]
+  lateExcuses: LateExcuseRow[]
   evaluations: QuarterlyEvaluationRow[]
 }
 
@@ -47,7 +56,7 @@ export type EmployeeRecords = {
 // id, already gated to Admins by middleware.ts). Access control is "never pass an id that
 // didn't come from the server-resolved session or the Admin-gated route", not RLS.
 export async function getEmployeeRecords(employeeId: string): Promise<EmployeeRecords> {
-  const [cashAdvances, loans, overtimes, undertimes, leaves, evaluations] = await Promise.all([
+  const [cashAdvances, loans, overtimes, undertimes, leaves, lateExcuses, evaluations] = await Promise.all([
     supabase.from('cash_advance_requests')
       .select('id, request_date, amount, reason, status, approved_by, resolved_at, reject_note, submitted_at')
       .eq('employee_id', employeeId).order('submitted_at', { ascending: false }),
@@ -63,6 +72,9 @@ export async function getEmployeeRecords(employeeId: string): Promise<EmployeeRe
     supabase.from('leave_requests')
       .select('id, leave_type, start_date, end_date, reason, days_requested, filed_late, submitted_at')
       .eq('employee_id', employeeId).order('submitted_at', { ascending: false }),
+    supabase.from('late_excuse_requests')
+      .select('id, late_date, reason, status, approved_by, resolved_at, reject_note, submitted_at')
+      .eq('employee_id', employeeId).order('submitted_at', { ascending: false }),
     supabase.from('quarterly_evaluations')
       .select('id, quarter, year, total, percentage, submitted_at')
       .eq('employee_id', employeeId).order('year', { ascending: false }).order('quarter', { ascending: false }),
@@ -74,6 +86,7 @@ export async function getEmployeeRecords(employeeId: string): Promise<EmployeeRe
     overtimes: (overtimes.data as OvertimeRow[]) ?? [],
     undertimes: (undertimes.data as UndertimeRow[]) ?? [],
     leaves: (leaves.data as LeaveRow[]) ?? [],
+    lateExcuses: (lateExcuses.data as LateExcuseRow[]) ?? [],
     evaluations: (evaluations.data as QuarterlyEvaluationRow[]) ?? [],
   }
 }
@@ -111,6 +124,7 @@ export type RequestsOverviewEmployee = {
   loans: LoanRow[]
   overtimes: OvertimeRow[]
   leaves: LeaveRow[]
+  lateExcuses: LateExcuseRow[]
 }
 
 // Plain office-local calendar date ('YYYY-MM-DD') for comparing against `date` columns
@@ -146,7 +160,7 @@ export async function getRequestsOverviewForPeriod(periodStart: Date, periodEnd:
   const endKey = officeCalendarDate(periodEnd)
   const pendingOrResolvedThisPeriod = `status.eq.Pending,and(resolved_at.gte.${startIso},resolved_at.lte.${resolvedCutoffIso})`
 
-  const [cashAdvances, loans, overtimes, leaves] = await Promise.all([
+  const [cashAdvances, loans, overtimes, leaves, lateExcuses] = await Promise.all([
     supabase.from('cash_advance_requests')
       .select('id, employee_id, employee_name, request_date, amount, reason, status, approved_by, resolved_at, reject_note, submitted_at')
       .or(pendingOrResolvedThisPeriod)
@@ -163,6 +177,12 @@ export async function getRequestsOverviewForPeriod(periodStart: Date, periodEnd:
       .select('id, employee_id, employee_name, leave_type, start_date, end_date, reason, days_requested, filed_late, submitted_at')
       .gte('start_date', startKey).lte('start_date', endKey)
       .order('start_date', { ascending: true }),
+    // Approval workflow like cash advance/loan (not date-scoped like overtime/leave) —
+    // still Pending regardless of when the late date was, OR resolved during this period.
+    supabase.from('late_excuse_requests')
+      .select('id, employee_id, employee_name, late_date, reason, status, approved_by, resolved_at, reject_note, submitted_at')
+      .or(pendingOrResolvedThisPeriod)
+      .order('submitted_at', { ascending: false }),
   ])
 
   type WithEmployee<T> = T & { employee_id: string; employee_name: string }
@@ -170,7 +190,7 @@ export async function getRequestsOverviewForPeriod(periodStart: Date, periodEnd:
   function bucket(employeeId: string, employeeName: string): RequestsOverviewEmployee {
     let entry = byEmployee.get(employeeId)
     if (!entry) {
-      entry = { employeeId, employeeName, cashAdvances: [], loans: [], overtimes: [], leaves: [] }
+      entry = { employeeId, employeeName, cashAdvances: [], loans: [], overtimes: [], leaves: [], lateExcuses: [] }
       byEmployee.set(employeeId, entry)
     }
     return entry
@@ -180,6 +200,7 @@ export async function getRequestsOverviewForPeriod(periodStart: Date, periodEnd:
   for (const row of (loans.data as WithEmployee<LoanRow>[] | null) ?? []) bucket(row.employee_id, row.employee_name).loans.push(row)
   for (const row of (overtimes.data as WithEmployee<OvertimeRow>[] | null) ?? []) bucket(row.employee_id, row.employee_name).overtimes.push(row)
   for (const row of (leaves.data as WithEmployee<LeaveRow>[] | null) ?? []) bucket(row.employee_id, row.employee_name).leaves.push(row)
+  for (const row of (lateExcuses.data as WithEmployee<LateExcuseRow>[] | null) ?? []) bucket(row.employee_id, row.employee_name).lateExcuses.push(row)
 
   return Array.from(byEmployee.values()).sort((a, b) => a.employeeName.localeCompare(b.employeeName))
 }

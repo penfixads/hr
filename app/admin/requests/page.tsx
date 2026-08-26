@@ -22,7 +22,7 @@ export default async function AdminRequestsPage() {
           <div>
             <h2 className="text-2xl font-bold" style={{ color: '#D9BB6E' }}>Requests — {payPeriod.label}</h2>
             <p className="text-sm text-penfix-text-muted mt-1">
-              Cash Advance &amp; Loan: Pending or resolved this period. Overtime &amp; Leave: filed for a date in this period.
+              Cash Advance, Loan &amp; Late Excuse: Pending or resolved this period. Overtime &amp; Leave: filed for a date in this period.
             </p>
           </div>
           <div className="flex items-center gap-4">
