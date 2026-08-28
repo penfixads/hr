@@ -300,12 +300,17 @@ export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
     // Legacy 'in'/'out' rows aren't part of the 4-step cycle and are ignored, as before.
     if (!(PUNCH_SEQUENCE as readonly string[]).includes(row.punch_type)) continue
 
+    // The band sets the EARLIEST slot a punch may occupy; it then takes the first slot still
+    // empty from there on. Not a fixed pair per band: an employee who eats lunch in the
+    // office and is back at 11:35 is making a genuine After Lunch In before noon, and a
+    // morning band of just [login, lunchout] had nowhere to put it, so it fell into
+    // "extra punches" and the day read as Missing After Lunch In (2026-08-14).
     const minutes = officeLocalMinutes(row.created_at)
-    const bandSlots: PunchType[] =
-      minutes < MORNING_END_MINUTES ? ['login', 'lunchout']
-      : minutes <= LUNCH_END_MINUTES ? ['lunchout', 'afterlunchin']
-      : ['afterlunchin', 'logout']
-    const slot = bandSlots.find(step => !group.steps[step])
+    const earliestSlot =
+      minutes < MORNING_END_MINUTES ? 0
+      : minutes <= LUNCH_END_MINUTES ? 1
+      : 2
+    const slot = PUNCH_SEQUENCE.slice(earliestSlot).find(step => !group.steps[step])
     if (slot) {
       group.steps[slot] = row
     } else if (minutes > LUNCH_END_MINUTES && group.steps.logout) {
