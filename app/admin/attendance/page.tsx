@@ -3,7 +3,7 @@ import PenfixHeader from '@/components/PenfixHeader'
 import PenfixFooter from '@/components/PenfixFooter'
 import { supabase } from '@/lib/supabase'
 import { getAttendanceLogsForEmployees, summarizePayPeriod, computeAbsentDays, sumAbsentDays, computeMissingDays } from '@/lib/attendance'
-import { getLeaveDateKeysForEmployees, officeCalendarDate } from '@/lib/employee-records'
+import { getLeaveDateKeysForEmployees, getLeaveBalancesForEmployees, officeCalendarDate } from '@/lib/employee-records'
 import { getCurrentPayPeriod } from '@/lib/payday'
 import { getOfficeDateKey } from '@/lib/office-time'
 import { surnameKey } from '@/lib/text'
@@ -14,14 +14,14 @@ import AttendanceListClient from './AttendanceListClient'
 // query with no request/session context instead of per-visitor.
 export const dynamic = 'force-dynamic'
 
-type Employee = { id: string; full_name: string; email: string; employment_status: string; team: string }
+type Employee = { id: string; full_name: string; email: string; employment_status: string; team: string; date_joined: string | null }
 
 export default async function AdminAttendancePage() {
   const payPeriod = getCurrentPayPeriod()
 
   const { data } = await supabase
     .from('employees')
-    .select('id, full_name, email, employment_status, team')
+    .select('id, full_name, email, employment_status, team, date_joined')
     .order('full_name', { ascending: true })
   // Re-sorted by surname client-side — there's no separate surname column to order by
   // in the query itself, and full_name is "First [Middle] Last", so the DB's own
@@ -29,9 +29,12 @@ export default async function AdminAttendancePage() {
   // surname is picked out of the combined string.
   const employees = ((data as Employee[] | null) ?? []).sort((a, b) => surnameKey(a.full_name).localeCompare(surnameKey(b.full_name)))
 
-  const [logsByEmail, leaveDateKeysByEmployee] = await Promise.all([
+  const [logsByEmail, leaveDateKeysByEmployee, leaveBalancesByEmployee] = await Promise.all([
     getAttendanceLogsForEmployees(employees.map(e => e.email).filter(Boolean), payPeriod.start, payPeriod.end),
     getLeaveDateKeysForEmployees(employees.map(e => e.id), officeCalendarDate(payPeriod.start), officeCalendarDate(payPeriod.end)),
+    // Whole-year balances, not this period's — leave credits accrue and are spent across the
+    // calendar year, so the figure beside Absent Days has to be the year's, not the fortnight's.
+    getLeaveBalancesForEmployees(employees.map(e => ({ id: e.id, date_joined: e.date_joined }))),
   ])
   const todayKey = getOfficeDateKey(new Date())
 
@@ -40,7 +43,7 @@ export default async function AdminAttendancePage() {
     const leaveDateKeys = leaveDateKeysByEmployee[emp.id] ?? new Set<string>()
     const absentDays = sumAbsentDays(computeAbsentDays(payPeriod.start, payPeriod.end, attendance.dayGroups, leaveDateKeys, todayKey))
     const missingDays = computeMissingDays(payPeriod.start, payPeriod.end, attendance.dayGroups, leaveDateKeys, todayKey)
-    return { employee: emp, attendance, absentDays, missingDays }
+    return { employee: emp, attendance, absentDays, missingDays, leaveBalances: leaveBalancesByEmployee[emp.id] }
   })
 
   return (

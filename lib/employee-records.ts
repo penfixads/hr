@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase'
 import { expandLeaveDateKeys } from '@/lib/attendance-shared'
+import { computeLeaveBalances } from '@/lib/leave'
 
 export type CashAdvanceRow = {
   id: string; request_date: string; amount: number; reason: string | null
@@ -131,6 +132,34 @@ export type RequestsOverviewEmployee = {
 // (request_date / ot_date / start_date) — deliberately NOT lib/office-time.ts's
 // getOfficeDateKey, which shifts small-hours instants to the previous day for attendance
 // punches specifically. These are ordinary calendar dates with no such shift.
+// Per-type leave balances for a roster, so a list page can show the same Accrued/Used/
+// Remaining figures the employee detail page shows. Scoped to the current calendar year
+// because that is the accrual period — computeLeaveBalances filters by year again on its
+// own, but there is no reason to drag prior years across the wire.
+export async function getLeaveBalancesForEmployees(
+  employees: { id: string; date_joined: string | null }[]
+): Promise<Record<string, ReturnType<typeof computeLeaveBalances>>> {
+  const result: Record<string, ReturnType<typeof computeLeaveBalances>> = {}
+  if (employees.length === 0) return result
+
+  const year = new Date().getFullYear()
+  const { data } = await supabase
+    .from('leave_requests')
+    .select('employee_id, leave_type, start_date, days_requested')
+    .in('employee_id', employees.map(e => e.id))
+    .gte('start_date', `${year}-01-01`)
+    .lte('start_date', `${year}-12-31`)
+
+  const byEmployee: Record<string, { leave_type: string; start_date: string; days_requested: number }[]> = {}
+  for (const row of (data as { employee_id: string; leave_type: string; start_date: string; days_requested: number }[]) ?? []) {
+    (byEmployee[row.employee_id] ??= []).push(row)
+  }
+  for (const employee of employees) {
+    result[employee.id] = computeLeaveBalances(byEmployee[employee.id] ?? [], employee.date_joined)
+  }
+  return result
+}
+
 export function officeCalendarDate(d: Date): string {
   const local = new Date(d.getTime() + 8 * 60 * 60 * 1000)
   return `${local.getUTCFullYear()}-${String(local.getUTCMonth() + 1).padStart(2, '0')}-${String(local.getUTCDate()).padStart(2, '0')}`

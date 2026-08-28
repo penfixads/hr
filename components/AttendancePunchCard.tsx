@@ -2,6 +2,7 @@ import { PUNCH_SEQUENCE, PUNCH_LABELS, formatDecimalHours, type PayPeriodAttenda
 import AttendancePunchRowActions from '@/components/AttendancePunchRowActions'
 import AttendancePunchAddAction from '@/components/AttendancePunchAddAction'
 import AttendanceAddPunchButton from '@/components/AttendanceAddPunchButton'
+import type { LeaveBalance } from '@/lib/leave'
 
 const MAROON = '#D9BB6E'
 
@@ -32,9 +33,15 @@ type Props = {
   // "omit rather than show for nobody" convention as filedOtDateKeys above — a day with no
   // punches then renders as no row at all, same as before this prop existed.
   missingDays?: MissingDayEntry[]
+  // This year's per-type leave balances. Shown here because "Absent Days" excludes any date
+  // with a leave filed, which makes an absence disappear from that figure whether or not the
+  // employee still has credit to cover it — the two numbers only make sense side by side.
+  // Undefined = the caller didn't compute it, same omit-rather-than-mislead convention as
+  // filedOtDateKeys and missingDays above.
+  leaveBalances?: Record<'Sick Leave' | 'Vacation Leave', LeaveBalance>
 }
 
-export default function AttendancePunchCard({ attendance, absentDays, leadingStat, isAdmin, userEmail, filedOtDateKeys, missingDays }: Props) {
+export default function AttendancePunchCard({ attendance, absentDays, leadingStat, isAdmin, userEmail, filedOtDateKeys, missingDays, leaveBalances }: Props) {
   // Merge real punch days with zero-punch placeholder rows into one chronological
   // (most-recent-first, matching groupLogsByDay's own order) list, so a day with no record
   // at all still shows up instead of silently having no row.
@@ -88,11 +95,23 @@ export default function AttendancePunchCard({ attendance, absentDays, leadingSta
           <div className="text-xs text-penfix-text-muted">Missing Logout</div>
           <div className="text-lg font-bold" style={{ color: attendance.missingLogoutDays > 0 ? '#F87171' : MAROON }}>{attendance.missingLogoutDays} day{attendance.missingLogoutDays === 1 ? '' : 's'}</div>
         </div>
+        {leaveBalances && (['Sick Leave', 'Vacation Leave'] as const).map(type => (
+          <div key={type}>
+            <div className="text-xs text-penfix-text-muted">{type} Left</div>
+            {/* Red below 1: payroll pays a filed leave day only while a WHOLE credit of that
+                type remains, so a 0.33 balance already means the next such day is unpaid. */}
+            <div className="text-lg font-bold" style={{ color: leaveBalances[type].remaining < 1 ? '#F87171' : MAROON }}>
+              {leaveBalances[type].remaining.toFixed(2)}
+              <span className="text-xs font-normal text-penfix-text-muted"> of {leaveBalances[type].accrued.toFixed(2)}</span>
+            </div>
+          </div>
+        ))}
       </div>
       <p className="text-xs text-penfix-text-muted mb-4 -mt-2">
         Undertime hours here are derived from early logouts only — separate from any approved undertime request on file.
         Overtime hours here are derived from punched OT In/OT Out pairs after the day&apos;s Login–Logout is already complete — separate from any filed Overtime request, which is what payroll actually pays.
         Absent Days assumes Sunday off and every other day worked, excluding company holidays and filed Leave dates — today and future dates are never counted. A day punched for only the morning or only the afternoon counts as 0.5.
+        Leave credits accrue 0.42 per month to a 5-day annual cap, per type; a filed leave day is paid only while at least one whole credit of that type is left, and is deducted as an unpaid day once it runs out.
       </p>
 
       {isAdmin && userEmail && <AttendanceAddPunchButton userEmail={userEmail} />}

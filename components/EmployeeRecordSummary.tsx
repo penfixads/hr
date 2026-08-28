@@ -117,6 +117,7 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
           userEmail={employee.email}
           filedOtDateKeys={filedOtDateKeys}
           missingDays={missingDays}
+          leaveBalances={leaveBalances}
         />
       </Card>
 
