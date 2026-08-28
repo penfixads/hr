@@ -219,23 +219,35 @@ export function formatMinutes(total: number): string {
 }
 
 // The terminal's determineNextPunch (attendance/lib/attendance-cycle.ts) labels a punch
-// purely by COUNT that day — the 2nd punch is always 'lunchout', never by clock time. An
-// employee who skips the morning and punches in during early afternoon then has their
-// second (and only other) punch stored as 'lunchout' even when it's really them leaving
-// for the day — e.g. Login 1:04pm / "Lunch Out" 5:01pm, which then displays as "Missing
-// After Lunch In, Logout" instead of a plain Login/Logout half-day (found 2026-08-27).
-// Reinterprets that one specific shape for DISPLAY only: a day with just Login + a second
-// punch, where that second punch falls at/after LATE_SECOND_PUNCH_HOUR, is shown as
-// Login/Logout instead. Deliberately narrow — three or four punches already follow the
-// normal order in the overwhelming majority of real days, so only the two-punch case gets
-// second-guessed. Doesn't touch the stored punch_type or the terminal that assigns it.
-const LATE_SECOND_PUNCH_HOUR = 14 // 2:00 PM office-local — see comment above
+// purely by COUNT that day — the 2nd punch is always 'lunchout', never by clock time — so
+// the stored punch_type is positional and drifts out of alignment with reality the moment
+// the count is off (a punch deleted by an Admin, a stray scan, a step never punched). It is
+// wrong often enough that it cannot be trusted to place a punch on the day card: Fortunato
+// Reyes' 2026-08-22 arrived at 07:50 stored as 'lunchout', which rendered as "Login Missed /
+// Lunch Out 07:50" for what was in fact an ordinary 07:50-16:47 day (found 2026-08-28).
+//
+// Slots are therefore assigned by TIME OF DAY, not by the stored label and not by arrival
+// order. Order alone breaks as soon as a punch is missing — an employee whose first punch is
+// 13:04 was absent all morning, not "5 hours late for Login". Same bands as payroll's
+// lib/attendance-compute.ts, which grades the same punches for pay; the two must agree.
+//
+//   morning     08:00-12:00  -> Login, then Lunch Out
+//   lunch       12:00-13:00  -> Lunch Out, then After Lunch In
+//   afternoon   13:01 onward -> After Lunch In, then Logout
+const MORNING_END_MINUTES = 12 * 60       // 720
+const LUNCH_END_MINUTES = 13 * 60         // 780
+const AFTERNOON_LOGOUT_MINUTES = 15 * 60  // 900 — a lone punch this late ends the day
 
-function reinterpretLateSecondPunchAsLogout(group: DayGroup): void {
-  if (!group.steps.login || !group.steps.lunchout || group.steps.afterlunchin || group.steps.logout) return
-  if (officeLocalMinutes(group.steps.lunchout.created_at) < LATE_SECOND_PUNCH_HOUR * 60) return
-  group.steps.logout = group.steps.lunchout
-  group.steps.lunchout = null
+// A single afternoon punch landing mid-afternoon or later is the employee leaving, not a
+// very-late lunch return, so it reads as Logout rather than After Lunch In. Replaces the
+// old two-punch-only reinterpretLateSecondPunchAsLogout special case, which existed to undo
+// exactly one shape of the same mislabeling the bands now handle generally.
+function reinterpretLoneAfternoonPunchAsLogout(group: DayGroup): void {
+  const afterLunchIn = group.steps.afterlunchin
+  if (!afterLunchIn || group.steps.logout) return
+  if (officeLocalMinutes(afterLunchIn.created_at) < AFTERNOON_LOGOUT_MINUTES) return
+  group.steps.logout = afterLunchIn
+  group.steps.afterlunchin = null
 }
 
 // Groups punches by office-local calendar day, most recent first — ported from
@@ -281,17 +293,34 @@ export function groupLogsByDay(rows: AttendanceLogRow[]): DayGroup[] {
       })
     }
     const group = byDate.get(dateKey)!
-    if ((PUNCH_SEQUENCE as readonly string[]).includes(row.punch_type)) {
-      const step = row.punch_type as PunchType
-      if (!group.steps[step]) group.steps[step] = row
-      else group.extraPunches.push(row)
-    } else if (row.punch_type === 'ot_in' || row.punch_type === 'ot_out') {
+    if (row.punch_type === 'ot_in' || row.punch_type === 'ot_out') {
       group.otPunches.push(row)
+      continue
+    }
+    // Legacy 'in'/'out' rows aren't part of the 4-step cycle and are ignored, as before.
+    if (!(PUNCH_SEQUENCE as readonly string[]).includes(row.punch_type)) continue
+
+    const minutes = officeLocalMinutes(row.created_at)
+    const bandSlots: PunchType[] =
+      minutes < MORNING_END_MINUTES ? ['login', 'lunchout']
+      : minutes <= LUNCH_END_MINUTES ? ['lunchout', 'afterlunchin']
+      : ['afterlunchin', 'logout']
+    const slot = bandSlots.find(step => !group.steps[step])
+    if (slot) {
+      group.steps[slot] = row
+    } else if (minutes > LUNCH_END_MINUTES && group.steps.logout) {
+      // Both afternoon slots taken. The LATER punch is the real end of the day, so it takes
+      // Logout and the one it displaces drops into extraPunches — that way a stray
+      // mid-afternoon scan is what gets surfaced for review, not the genuine logout.
+      group.extraPunches.push(group.steps.logout)
+      group.steps.logout = row
+    } else {
+      group.extraPunches.push(row)
     }
   }
 
   for (const group of byDate.values()) {
-    reinterpretLateSecondPunchAsLogout(group)
+    reinterpretLoneAfternoonPunchAsLogout(group)
 
     const lunchOutIso = group.steps.lunchout?.created_at ?? null
     for (const step of PUNCH_SEQUENCE) {
