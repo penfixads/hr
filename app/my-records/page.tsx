@@ -60,11 +60,18 @@ export default async function MyRecordsPage() {
             <img src="/images/myhricons/MyHr.png" alt="" className="w-9 h-9 object-contain" />
             <h2 className="text-2xl font-bold text-foreground">{titleCase(employee.full_name)}&apos;s Records</h2>
           </div>
-          <Link href="/my-records/edit"
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
-            style={{ backgroundColor: '#4A0000' }}>
-            Edit My Info
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/payslips"
+              className="px-4 py-2 rounded-lg text-sm font-semibold transition hover:opacity-90"
+              style={{ border: '1px solid #C9A84C', color: '#D9BB6E' }}>
+              View Payslips
+            </Link>
+            <Link href="/my-records/edit"
+              className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition hover:opacity-90"
+              style={{ backgroundColor: '#4A0000' }}>
+              Edit My Info
+            </Link>
+          </div>
         </div>
 
         <div className="mb-6">

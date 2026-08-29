@@ -117,6 +117,10 @@ const MY_RECORDS: MenuItem[] = [
   { href: '/my-records', icon: '📋', iconSrc: '/images/myhricons/MyHr.png', title: 'MyHR', description: 'View your attendance, requests, and evaluation history.' },
 ]
 
+const PAYSLIPS: MenuItem[] = [
+  { href: '/payslips', icon: '🧾', title: 'Payslips', description: 'View and print the payslips payroll has released to you.' },
+]
+
 const ADMIN_DASHBOARD: MenuItem[] = [
   { href: '/admin', icon: '🛠️', iconSrc: '/images/admin%20hr/admin-dashboard.png', title: 'Admin Dashboard', description: 'Manage employees, records, and requests.', wide: true },
   { href: '/admin/attendance', icon: '🕒', iconSrc: '/images/admin%20hr/attendance.png', title: 'Attendance', description: 'View punch records for every employee this pay period.' },
@@ -268,6 +272,7 @@ export default async function Home() {
           <SectionLabel>{employee?.isAdmin ? 'Admin' : 'MyHR'}</SectionLabel>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
             {myRecords.map(item => <MenuCard key={item.href} item={item} />)}
+            {!employee?.isAdmin && PAYSLIPS.map(item => <MenuCard key={item.href} item={item} />)}
           </div>
 
           {forms.length > 0 && (
