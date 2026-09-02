@@ -97,8 +97,13 @@ export default function LeaveRowEditor({ leave, datesLabel, filedLabel, editedLa
     )
   }
 
+  // Gold-tinted dark surface, NOT the bg-amber-50/40 the overtime editor uses
+  // (components/RequestsOverviewClient.tsx). That class is a light-theme highlight; over
+  // this app's maroon card (#4A0000) it composites to a muddy mid-tone that drops the
+  // hint text below to 2.66:1 — under WCAG AA, on the one sentence that explains the
+  // single-day fix. This tint keeps it at 7.2:1.
   return (
-    <tr className="border-b border-penfix-border bg-amber-50/40">
+    <tr className="border-b border-penfix-border" style={{ backgroundColor: 'rgba(201, 168, 76, 0.10)' }}>
       <td className="py-2 pr-4 align-top">
         <select className={inputClass} value={leaveType} onChange={e => setLeaveType(e.target.value)}>
           {LEAVE_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
@@ -138,7 +143,7 @@ export default function LeaveRowEditor({ leave, datesLabel, filedLabel, editedLa
             ✕ Cancel
           </button>
         </div>
-        {error && <div className="text-xs text-red-600 text-right mt-1">{error}</div>}
+        {error && <div className="text-xs text-red-400 text-right mt-1">{error}</div>}
       </td>
     </tr>
   )
