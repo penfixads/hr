@@ -24,9 +24,12 @@ export type UndertimeRow = {
   submitted_at: string
 }
 
+// edited_at is optional because only getEmployeeRecords below fetches it (it's the only
+// view that shows the marker), and even there it can legitimately be absent — see the
+// separate query there for why it isn't just another column in the main select.
 export type LeaveRow = {
   id: string; leave_type: string; start_date: string; end_date: string; reason: string | null
-  days_requested: number; filed_late: boolean; submitted_at: string
+  days_requested: number; filed_late: boolean; submitted_at: string; edited_at?: string | null
 }
 
 export type QuarterlyEvaluationRow = {
@@ -81,12 +84,27 @@ export async function getEmployeeRecords(employeeId: string): Promise<EmployeeRe
       .eq('employee_id', employeeId).order('year', { ascending: false }).order('quarter', { ascending: false }),
   ])
 
+  // edited_at is read on its own rather than as another column in the leave select above,
+  // deliberately. A deploy can land before supabase/CATCHUP_leave_edit.sql is run against
+  // the project, and PostgREST fails the WHOLE select on an unknown column — folding it in
+  // would turn "no edited markers yet" into "this employee has never filed leave", which
+  // also drops the leave days that exempt them from the absent-day count
+  // (lib/attendance-shared.ts). Isolated here, a missing column costs only the marker.
+  const leaveRows = (leaves.data as LeaveRow[]) ?? []
+  const { data: editStamps } = await supabase
+    .from('leave_requests')
+    .select('id, edited_at')
+    .eq('employee_id', employeeId)
+  const editedAtById = new Map(
+    ((editStamps as { id: string; edited_at: string | null }[] | null) ?? []).map(r => [r.id, r.edited_at])
+  )
+
   return {
     cashAdvances: (cashAdvances.data as CashAdvanceRow[]) ?? [],
     loans: (loans.data as LoanRow[]) ?? [],
     overtimes: (overtimes.data as OvertimeRow[]) ?? [],
     undertimes: (undertimes.data as UndertimeRow[]) ?? [],
-    leaves: (leaves.data as LeaveRow[]) ?? [],
+    leaves: leaveRows.map(l => ({ ...l, edited_at: editedAtById.get(l.id) ?? null })),
     lateExcuses: (lateExcuses.data as LateExcuseRow[]) ?? [],
     evaluations: (evaluations.data as QuarterlyEvaluationRow[]) ?? [],
   }

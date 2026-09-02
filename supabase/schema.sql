@@ -201,6 +201,10 @@ create table if not exists leave_requests (
   filed_late boolean not null default false,
 
   submitted_at timestamptz default now(),
+  -- Set when the employee corrects their own filing from MyHR (app/api/leave-edit/route.ts).
+  -- submitted_at stays the ORIGINAL filing time, since that is what the filing-window policy
+  -- is measured against. See supabase/CATCHUP_leave_edit.sql.
+  edited_at timestamptz,
 
   check (end_date >= start_date)
 );

@@ -15,6 +15,7 @@ import { getOfficeDateKey } from '@/lib/office-time'
 import type { EmployeeRecords } from '@/lib/employee-records'
 import type { LeaveBalance } from '@/lib/leave'
 import RequestApprovalActions from '@/components/RequestApprovalActions'
+import LeaveRowEditor from '@/components/LeaveRowEditor'
 import AttendancePunchCard from '@/components/AttendancePunchCard'
 import { titleCase } from '@/lib/text'
 
@@ -146,18 +147,29 @@ export default function EmployeeRecordSummary({ mode, employee, records, leaveBa
                 <th className="text-left py-2 px-3 font-medium">Dates</th>
                 <th className="text-center py-2 px-3 font-medium">Days</th>
                 <th className="text-left py-2 px-3 font-medium">Reason</th>
-                <th className="text-right py-2 pl-3 font-medium">Filed</th>
+                <th className={`text-right py-2 font-medium ${mode === 'self' ? 'px-3' : 'pl-3'}`}>Filed</th>
+                {/* Self-service only: an employee can correct their own filing (the usual
+                    case being a one-day leave typed as a two-day range), but the admin view
+                    of this same table stays read-only, as it has always been. */}
+                {mode === 'self' && <th className="text-right py-2 pl-3 font-medium">Action</th>}
               </tr>
             </thead>
             <tbody>
               {records.leaves.map(l => (
-                <tr key={l.id} className="border-b border-penfix-border">
-                  <td className="py-2 pr-4 font-medium">{l.leave_type}{l.filed_late && <span className="text-amber-600 text-xs ml-1">(late)</span>}</td>
-                  <td className="py-2 px-3">{fmtDate(l.start_date)} – {fmtDate(l.end_date)}</td>
-                  <td className="py-2 px-3 text-center">{l.days_requested}</td>
-                  <td className="py-2 px-3 text-penfix-text-muted">{l.reason || '—'}</td>
-                  <td className="py-2 pl-3 text-right text-penfix-text-muted text-xs">{fmtSubmitted(l.submitted_at)}</td>
-                </tr>
+                mode === 'self' ? (
+                  <LeaveRowEditor key={l.id} leave={l}
+                    datesLabel={`${fmtDate(l.start_date)} – ${fmtDate(l.end_date)}`}
+                    filedLabel={fmtSubmitted(l.submitted_at)}
+                    editedLabel={l.edited_at ? fmtSubmitted(l.edited_at) : null} />
+                ) : (
+                  <tr key={l.id} className="border-b border-penfix-border">
+                    <td className="py-2 pr-4 font-medium">{l.leave_type}{l.filed_late && <span className="text-amber-600 text-xs ml-1">(late)</span>}</td>
+                    <td className="py-2 px-3">{fmtDate(l.start_date)} – {fmtDate(l.end_date)}</td>
+                    <td className="py-2 px-3 text-center">{l.days_requested}</td>
+                    <td className="py-2 px-3 text-penfix-text-muted">{l.reason || '—'}</td>
+                    <td className="py-2 pl-3 text-right text-penfix-text-muted text-xs">{fmtSubmitted(l.submitted_at)}</td>
+                  </tr>
+                )
               ))}
             </tbody>
           </table>

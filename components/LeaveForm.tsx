@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { titleCase } from '@/lib/text'
-import { MS_PER_DAY, toDate, daysInclusive, accruedCredits } from '@/lib/leave'
+import { toDate, daysInclusive, accruedCredits, checkFilingPolicy, officeDayKey } from '@/lib/leave'
 
 type EmployeeOption = { id: string; full_name: string; team: 'creative' | 'production'; date_joined: string | null }
 type LeaveType = 'Sick Leave' | 'Vacation Leave'
@@ -68,12 +68,11 @@ export default function LeaveForm() {
   const daysRequested = startDate && endDate && endDate >= startDate ? daysInclusive(startDate, endDate) : 0
   const exceedsBalance = daysRequested > 0 && daysRequested > remaining
 
-  const today = new Date(); today.setHours(0, 0, 0, 0)
-  const noticeDays = startDate ? Math.floor((toDate(startDate).getTime() - today.getTime()) / MS_PER_DAY) : null
-  const vacationTooSoon = leaveType === 'Vacation Leave' && noticeDays !== null && noticeDays < 3
-  const daysSinceReturn = endDate ? Math.floor((today.getTime() - toDate(endDate).getTime()) / MS_PER_DAY) : null
-  const sickFiledLate = leaveType === 'Sick Leave' && daysSinceReturn !== null && daysSinceReturn > 3
-  const filedLate = vacationTooSoon || sickFiledLate
+  // Shared with app/api/leave-edit/route.ts, which re-runs the same two rules against the
+  // original submitted_at when an employee corrects a filing — one copy of the policy, so
+  // filing and correcting can't drift apart.
+  const { noticeDays, daysSinceReturn, vacationTooSoon, sickFiledLate, filedLate } =
+    checkFilingPolicy(leaveType, startDate, endDate, officeDayKey(new Date()))
 
   const conflicts = selected && leaveType === 'Vacation Leave' && startDate && endDate
     ? teamVacations.filter(l =>
